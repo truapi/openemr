@@ -119,7 +119,7 @@ $version = $versionService->fetch();
                 <div class="page-header">
                     <h1><?php echo xlt("About");?>&nbsp;OpenEMR</h1>
                 </div>
-                <h4><?php  echo xlt('Version Number'); ?>: <?php echo "ian-j3bs-v".text($openemr_version) ?></h4>
+                <h4><?php  echo xlt('Version Number'); ?>: <?php echo "ian-8754-v".text($openemr_version) ?></h4>
                 <span class="text product-registration"><span class="email"></span> <span class="id"></span></span><br>
                 <?php if (!empty($GLOBALS['support_phone_number'])) { ?>
                     <span class="text"><?php  echo xlt('Support Phone Number'); ?>: <?php echo $GLOBALS['support_phone_number'] ?></span><br>
