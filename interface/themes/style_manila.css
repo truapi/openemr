@@ -1575,3 +1575,48 @@ table.dataTable#therapy_groups_list tbody td{
 .calendar {
     z-index:2;
 }
+
+
+#primary_support {
+    padding: 10px;
+}
+#primary_support table {
+    width: 100%;
+    background-color: #fff;
+    padding: 1em;
+    border: 1pt solid black;
+    -moz-box-shadow: 2px 2px 2px #c0c0c0;
+    -webkit-box-shadow: 2px 2px 2px #c0c0c0;
+    box-shadow: 2px 2px 2px #c0c0c0;
+    border-radius: 5px;
+}
+#primary_support table:first {
+    border:none;
+    }
+#primary_support td {
+    padding: 3px;
+}
+#primary_support .statrow {
+    cursor: pointer;
+}
+#primary_support .head {
+    font-size:0.9em;
+    background-color:#cccccc;
+    text-align:center;
+}
+#primary_support .detail {
+    font-size:0.9em;
+    vertical-align: top;
+}
+#primary_support .btn {
+    background-color:transparent;
+}
+#primary_support .bg1 {
+    background-color: #ddddff;
+}
+#primary_support .bg2 {
+    background-color: #ffdddd;
+}
+#primary_support .center {
+    text-align: center;
+}
