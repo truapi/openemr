@@ -14,6 +14,8 @@
 require_once "../../globals.php";
 
 use OpenEMR\Core\Header;
+
+$patient_id = ($_GET['patient_id']) ? $_GET['patient_id'] : "";
 ?>
 
 <html>
@@ -21,41 +23,45 @@ use OpenEMR\Core\Header;
     <?php Header::setupHeader(['common']);?>
     <title><?php echo xlt('Primary Support'); ?></title>
     <script language="javascript">
-        function dopclick(patient_id) {
+        function refreshme() {
             top.restoreSession();
-            dlgopen('add_support.php?patient_id=' + patient_id, '_blank', 650, 600);
+            document.getElementById('modalframe').contentWindow.save();
+        }
+        function del() {
+            // Submit form to delete
+            var form = document.createElement("form");
+            form.method = "POST";
+            form.action = "patient_support_delete.php";
+            var element1 = document.createElement("input");
+            var patient_id = <?php echo $patient_id ?>;
+            element1.value=<?php echo $patient_id ?>;
+            element1.name="patient_id";
+            element1.type = "hidden";
+            form.appendChild(element1);
+
+            var array = []
+            var checkboxes = document.querySelectorAll('input[type=checkbox]:checked')
+            for (var i = 0; i < checkboxes.length; i++) {
+                array.push(checkboxes[i].value)
+            }
+            var element2 = document.createElement("input");
+            element2.value=JSON.stringify(array);
+            element2.name="s_id_array";
+            element2.type = "hidden";
+            form.appendChild(element2);
+
+            document.body.appendChild(form);
+            form.submit();
         }
     </script>
 </head>
 
 <?php
-$patient_id = ($_GET['patient_id']) ? $_GET['patient_id'] : "";
 
 function getPatients($patient_id) {
-    global $sqlconf;
-    $host = $sqlconf["host"];
-    $port = $sqlconf["port"];
-    $login = $sqlconf["login"];
-    $pass = $sqlconf["pass"];
-    $dbase = $sqlconf["dbase"];
-    $dbh = mysqli_connect("$host", "$login", "$pass", $dbase, $port);
-    if (!$dbh) {
-        echo "MySQL connect failed";
-    }
-    $query  =
-        "SELECT patient_data.* FROM patient_data " .
-        "INNER JOIN patient_support ON patient_data.id = patient_support.sid " .
-        "WHERE patient_support.pid = '$patient_id'";
 
-    $result = mysqli_query($dbh, $query);
-    while($patient_data = mysqli_fetch_array($result)) {
-        if ($patient_data) {
-            $res[] = $patient_data;
-        }
-    }
 
-    mysqli_close($dbh);
-    return $res;
+    return getPrimarySupportPatient($patient_id);
 }
 ?>
 
@@ -71,17 +77,20 @@ function getPatients($patient_id) {
 
 <!-- <div id='primary_support'> -->
 <div id="patient_stats">
-<?php
-echo "<a href='javascript:;' class='css_button_small' onclick='dopclick($patient_id)'><span>" . xlt('Add') . "</span></a>\n";
-echo "  <span class='title'>Primary Support Patient</span>\n";
-?>
+    <?php
+    echo "<a href='../../new/new_primary_support_patient.php?patient_id=$patient_id' class='css_button_small'><span>" . xlt('Add') . "</span></a>\n";
+    echo "<button class='css_button_small' onclick='del()'>". xlt('Delete') ."</button>"
+    ?>
     <table style='margin-bottom:1em;'>
         <tr class='head'>
-            <th style='text-align:left'><?php echo xlt('Full Name'); ?></th>
-            <th style='text-align:left'><?php echo xlt('Home Phone'); ?></th>
-            <th style='text-align:left'><?php echo xlt('SSN'); ?></th>
-            <th style='text-align:left'><?php echo xlt('DOB'); ?></th>
-            <th style='text-align:left'><?php echo xlt('External ID'); ?></th>
+        <th class="srName"><?php echo htmlspecialchars(xl('Name'), ENT_NOQUOTES);?></th>
+        <th class="srGender"><?php echo htmlspecialchars(xl('Sex'), ENT_NOQUOTES);?></th>
+        <th class="srPhone"><?php echo htmlspecialchars(xl('Phone'), ENT_NOQUOTES);?></th>
+        <th class="srSS"><?php echo htmlspecialchars(xl('SS'), ENT_NOQUOTES);?></th>
+        <th class="srDOB"><?php echo htmlspecialchars(xl('DOB'), ENT_NOQUOTES);?></th>
+        <th class="srID"><?php echo htmlspecialchars(xl('ID'), ENT_NOQUOTES);?></th>
+        <th class="srPID"><?php echo htmlspecialchars(xl('PID'), ENT_NOQUOTES);?></th>
+        <th></th>
         </tr>
         <?php
             $patients = getPatients($patient_id);
@@ -91,10 +100,13 @@ echo "  <span class='title'>Primary Support Patient</span>\n";
                 ?>
                 <tr class="<?php echo $bgclass?> detail">
                     <td><?php echo $patient['lname']." ".$patient['fname'] ?></td>
+                    <td><?php echo $patient['sex'] ?></td>
                     <td><?php echo $patient['phone_home'] ?></td>
                     <td><?php echo $patient['ss'] ?></td>
                     <td><?php echo $patient['DOB'] ?></td>
+                    <td><?php echo $patient['pubpid'] ?></td>
                     <td><?php echo $patient['pid'] ?></td>
+                    <td><input type='checkbox' name='form_active' value='<?php echo $patient['id'] ?>' /></td>
                 </tr>
                 <?php
             }

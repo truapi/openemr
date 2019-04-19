@@ -1156,6 +1156,46 @@ function updatePatientData($pid, $new, $create = false)
     return $db_id;
 }
 
+/**
+ * Insert New primary support patient to patient_support table
+ * In this table, pid is patient_id, s_id is id of patient connected to pid
+ */
+function newPrimarySupportPatient($patient_id, $support_id) {
+    $sql = "INSERT INTO patient_support SET pid = " . $patient_id . ", sid = " . $support_id;
+    $db_id = sqlInsert($sql);
+    return $db_id;
+}
+
+function getPrimarySupportPatient($patient_id) {
+    global $sqlconf;
+    $host = $sqlconf["host"];
+    $port = $sqlconf["port"];
+    $login = $sqlconf["login"];
+    $pass = $sqlconf["pass"];
+    $dbase = $sqlconf["dbase"];
+    $dbh = mysqli_connect("$host", "$login", "$pass", $dbase, $port);
+    if (!$dbh) {
+        echo "MySQL connect failed";
+    }
+    $query  =
+        "SELECT patient_data.* FROM patient_data " .
+        "INNER JOIN patient_support ON patient_data.id = patient_support.sid " .
+        "WHERE patient_support.pid = '$patient_id'";
+
+    $result = mysqli_query($dbh, $query);
+    while($patient_data = mysqli_fetch_array($result)) {
+        if ($patient_data) {
+            $res[] = $patient_data;
+        }
+    }
+    return $res;
+}
+
+function removePrimarySupportPatient($patient_id, $support_id) {
+    $sql = "DELETE FROM patient_support WHERE pid = " . $patient_id . " AND sid = " . $support_id;
+    return sqlQuery($sql);
+}
+
 function newEmployerData(
     $pid,
     $name = "",
