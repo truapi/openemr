@@ -250,3 +250,38 @@ font-weight: bold;
 	width: 44px;
 	height: 22px;
 }
+
+#primary_support {
+    padding: 10px;
+}
+#primary_support table {
+    width: 100%;
+    border-collapse: collapse;
+}
+#primary_support td {
+    padding: 3px;
+}
+#primary_support .statrow {
+    cursor: pointer;
+}
+#primary_support .head {
+    font-size: 10pt;
+    background-color: #cccccc;
+    text-align: center;
+}
+#primary_support .detail {
+    font-size: 10pt;
+    vertical-align: top;
+}
+#primary_support .btn {
+    background-color: transparent;
+}
+#primary_support .bg1 {
+    background-color: #ddddff;
+}
+#primary_support .bg2 {
+    background-color: #ffdddd;
+}
+#primary_support .center {
+    text-align: center;
+}

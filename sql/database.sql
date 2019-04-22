@@ -5868,6 +5868,16 @@ CREATE TABLE `patient_data` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 ;
 -----------------------------------------------------------
 
+/*Table structure for table `patient_support` */
+
+DROP TABLE IF EXISTS `patient_support`;
+
+CREATE TABLE `patient_support` (
+  `pid` int(11) NOT NULL,
+  `sid` int(11) NOT NULL,
+  PRIMARY KEY (`pid`,`sid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 --
 -- Table structure for table `patient_portal_menu`
 --
