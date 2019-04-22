@@ -59,8 +59,6 @@ $patient_id = ($_GET['patient_id']) ? $_GET['patient_id'] : "";
 <?php
 
 function getPatients($patient_id) {
-
-
     return getPrimarySupportPatient($patient_id);
 }
 ?>
@@ -90,6 +88,7 @@ function getPatients($patient_id) {
         <th class="srDOB"><?php echo htmlspecialchars(xl('DOB'), ENT_NOQUOTES);?></th>
         <th class="srID"><?php echo htmlspecialchars(xl('ID'), ENT_NOQUOTES);?></th>
         <th class="srPID"><?php echo htmlspecialchars(xl('PID'), ENT_NOQUOTES);?></th>
+        <th class="srStartCall"><?php echo htmlspecialchars(xl('Start Call'), ENT_NOQUOTES);?></th>
         <th></th>
         </tr>
         <?php
@@ -106,6 +105,7 @@ function getPatients($patient_id) {
                     <td><?php echo $patient['DOB'] ?></td>
                     <td><?php echo $patient['pubpid'] ?></td>
                     <td><?php echo $patient['pid'] ?></td>
+                    <td class="small"><a href="./start_call/main.php?patient_id=<?php echo $patient_id?>&primary_patient_id=<?php echo $patient['id'] ?>">Start Call</a></td>
                     <td><input type='checkbox' name='form_active' value='<?php echo $patient['id'] ?>' /></td>
                 </tr>
                 <?php
