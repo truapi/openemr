@@ -27,8 +27,8 @@ function setencounter($enc)
 
     $_SESSION['encounter']=$enc;
     $encounter=$enc;
-    
-    
+
+
     //returns 1 on successful global set, or 0 if there was no
     //current encounter, signifying that the interface should load
     //the screen for a new encounter
@@ -44,4 +44,9 @@ function fetchCategoryIdByEncounter($encounter)
     $sql = "select pc_catid from $table where encounter=? limit 1";
     $result = sqlQuery($sql, array($encounter));
     return $result['pc_catid'];
+}
+
+function createEncounter($patient_id, $primary_patient_id) {
+    $enc_id = generate_id();
+    return sqlInsert("INSERT INTO form_encounter (date, pid, encounter, primary_support) VALUES(?,?,?,?)", array(date('Y-m-d H:i:s'), $patient_id, $enc_id, $primary_patient_id));
 }

@@ -56,13 +56,6 @@ $patient_id = ($_GET['patient_id']) ? $_GET['patient_id'] : "";
     </script>
 </head>
 
-<?php
-
-function getPatients($patient_id) {
-    return getPrimarySupportPatient($patient_id);
-}
-?>
-
 <body class='body_top'>
 <div>
   <a href="../summary/demographics.php?set_pid=<?php echo $patient_id?>" class="css_button" onclick="top.restoreSession()">
@@ -88,24 +81,30 @@ function getPatients($patient_id) {
         <th class="srDOB"><?php echo htmlspecialchars(xl('DOB'), ENT_NOQUOTES);?></th>
         <th class="srID"><?php echo htmlspecialchars(xl('ID'), ENT_NOQUOTES);?></th>
         <th class="srPID"><?php echo htmlspecialchars(xl('PID'), ENT_NOQUOTES);?></th>
-        <th class="srStartCall"><?php echo htmlspecialchars(xl('Start Call'), ENT_NOQUOTES);?></th>
+        <th class="srStartCall"><?php echo htmlspecialchars(xl('Assessment'), ENT_NOQUOTES);?></th>
         <th></th>
         </tr>
         <?php
-            $patients = getPatients($patient_id);
+            $patients = getPrimarySupportPatient($patient_id);
             foreach($patients as $patient) {
                 ++$encount;
                 $bgclass = (($encount & 1) ? "bg1" : "bg2");
                 ?>
                 <tr class="<?php echo $bgclass?> detail">
-                    <td><?php echo $patient['lname']." ".$patient['fname'] ?></td>
+                    <td>
+                        <a href="../summary/demographics.php?set_pid=<?php echo $patient['id']?>">
+                            <?php echo $patient['lname']." ".$patient['fname'] ?>
+                        </a>
+                    </td>
                     <td><?php echo $patient['sex'] ?></td>
                     <td><?php echo $patient['phone_home'] ?></td>
                     <td><?php echo $patient['ss'] ?></td>
                     <td><?php echo $patient['DOB'] ?></td>
                     <td><?php echo $patient['pubpid'] ?></td>
                     <td><?php echo $patient['pid'] ?></td>
-                    <td class="small"><a href="./start_call/main.php?patient_id=<?php echo $patient_id?>&primary_patient_id=<?php echo $patient['id'] ?>">Start Call</a></td>
+                    <td class="small">
+                        <a href="../../forms/primary_support/new.php?patient_id=<?php echo $patient_id?>&primary_patient_id=<?php echo $patient['id'] ?>&back=1">Assessment</a>
+                    </td>
                     <td><input type='checkbox' name='form_active' value='<?php echo $patient['id'] ?>' /></td>
                 </tr>
                 <?php

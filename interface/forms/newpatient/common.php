@@ -226,7 +226,7 @@ ajax_bill_loc(pid,dte,facility);
           <option value='_blank'>-- <?php echo xlt('Select One'); ?> --</option>
             <?php
             //Bring only patient ang group categories
-            $visitSQL = "SELECT pc_catid, pc_catname, pc_cattype 
+            $visitSQL = "SELECT pc_catid, pc_catname, pc_cattype
                        FROM openemr_postcalendar_categories
                        WHERE pc_active = 1 and pc_cattype IN (0,3) and pc_constant_id  != 'no_show' ORDER BY pc_seq";
 
@@ -384,6 +384,24 @@ echo ">" . xlt('None'). "</option>\n";
 }
 ?>
     </tr>
+
+    <tr id="ps-wrapper" style="display: none">
+        <td class='bold' nowrap><?php echo xlt('Primary Support'); ?>:</td>
+        <td colspan="6">
+            <select class="form-control" name="primary_support">
+                <option value='_blank'>-- <?php echo xlt('Select One'); ?> --</option>
+                <?php
+                $patients = getPrimarySupportPatient();
+                foreach ($patients as $patient) {
+                    echo "<option value=\"".attr($patient["id"])."\" ";
+                    echo ">" . text(attr($patient["lname"]) . attr($patient["fname"]));
+                    echo "</option>\n";
+                }
+
+                ?>
+            </select>
+        </td>
+     </tr>
 
     <tr<?php if (!$GLOBALS['gbl_visit_referral_source']) {
         echo " style='visibility:hidden;'";
@@ -547,6 +565,15 @@ if (!empty($erow['encounter'])) {
 }
 ?>
 
+$('#ps-wrapper').hide();
+var primary_category = <?php echo fetchPrimaryCategoryValue(); ?>;
+$('#pc_catid').on('change', function () {
+    if (Number($(this).val()) === primary_category) {
+        $('#ps-wrapper').show();
+    } else {
+        $('#ps-wrapper').hide();
+    }
+})
 <?php if ($GLOBALS['enable_group_therapy']) { ?>
 /* hide / show group name input */
   var groupCategories = <?php echo json_encode($therapyGroupCategories); ?>;

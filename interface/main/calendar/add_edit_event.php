@@ -596,6 +596,7 @@ if (empty($collectthis)) {
                         sqlStatement("UPDATE openemr_postcalendar_events SET " .
                         "pc_catid = '" . add_escape_custom($_POST['form_category']) . "', " .
                         "pc_pid = '" . add_escape_custom($_POST['form_pid']) . "', " .
+                        "pc_p_s_pid = '" . add_escape_custom($_POST['form_ps_patient']) . "', " .
                         "pc_title = '" . add_escape_custom($_POST['form_title']) . "', " .
                         "pc_time = NOW(), " .
                         "pc_hometext = '" . add_escape_custom($_POST['form_comments']) . "', " .
@@ -692,6 +693,7 @@ if (empty($collectthis)) {
                     "pc_catid = '" . add_escape_custom($_POST['form_category']) . "', " .
                     "pc_aid = '" . add_escape_custom($prov) . "', " .
                     "pc_pid = '" . add_escape_custom($_POST['form_pid']) . "', " .
+                    "pc_p_s_pid = '" . add_escape_custom($_POST['form_ps_patient']) . "', " .
                     "pc_title = '" . add_escape_custom($_POST['form_title']) . "', " .
                     "pc_time = NOW(), " .
                     "pc_hometext = '" . add_escape_custom($_POST['form_comments']) . "', " .
@@ -1143,11 +1145,15 @@ while ($crow = sqlFetchArray($cres)) {
    var catid = s.options[s.selectedIndex].value;
    var style_apptstatus = document.getElementById('title_apptstatus').style;
    var style_prefcat = document.getElementById('title_prefcat').style;
+   var primary_support = document.getElementById('primary_support');
+   primary_support.style.display = 'none';
    if (catid == '2') { // In Office
     style_apptstatus.display = 'none';
     style_prefcat.display = '';
     f.form_apptstatus.style.display = 'none';
     f.form_prefcat.style.display = '';
+   } else if (catid == '16') {
+        primary_support.style.display = '';
    } else {
     style_prefcat.display = 'none';
     style_apptstatus.display = '';
@@ -1262,6 +1268,10 @@ while ($crow = sqlFetchArray($cres)) {
 
  }
 
+ function set_ps_patient() {
+
+ }
+
  // Constants used by dateChanged() function.
  var occurNames = new Array(
   '<?php echo xls("1st"); ?>',
@@ -1364,6 +1374,7 @@ var weekDays = new Array(
 </head>
 
 <body class="body_top main-calendar-add_edit_event">
+    <?php echo $_POST['form_ps_patient']; ?>
 <div class="container-responsive">
 <form class="form-inline" method='post' name='theform' id='theform' action='add_edit_event.php?eid=<?php echo attr($eid) ?>' />
 <!-- ViSolve : Requirement - Redirect to Create New Patient Page -->
@@ -1583,6 +1594,23 @@ if ($_GET['prov']==true) {
         <?php
     }
     ?>
+    <tr id="primary_support" style="display: none;">
+        <td nowrap>
+            <b><?php echo xlt('Primary Support'); ?>:</b>
+        </td>
+        <td nowrap>
+            <select id="ps_patient" class='input-sm' name='form_ps_patient' onchange='set_ps_patient()' style='width:100%'>
+                <?php
+                $patients = getPrimarySupportPatient($patientid);
+                foreach ($patients as $patient) {
+                    echo "<option value=\"".attr($patient["id"])."\" ";
+                    echo ">" . text(attr($patient["lname"]) . attr($patient["fname"]));
+                    echo "</option>\n";
+                }
+                ?>
+            </select>
+        </td>
+    </tr>
 <?php
 if ($_GET['group']==true &&  $have_group_global_enabled) {
     ?>

@@ -505,7 +505,8 @@ function myGetRegistered($state = "1", $limit = "unlimited", $offset = "0")
 {
     global $attendant_type;
     $sql = "SELECT category, nickname, name, state, directory, id, sql_run, " .
-    "unpackaged, date, aco_spec FROM registry WHERE ";
+        "unpackaged, date, aco_spec FROM registry WHERE ";
+
   // select different forms for groups
     if ($attendant_type == 'pid') {
         $sql .= "patient_encounter = 1 AND ";
@@ -528,6 +529,20 @@ function myGetRegistered($state = "1", $limit = "unlimited", $offset = "0")
 }
 
 $reg = myGetRegistered();
+
+if (isset($pid) && isset($encounter)) {
+    $tmp = sqlQuery("SELECT * FROM form_encounter WHERE " .
+    "pid = '$pid' AND encounter = '$encounter' LIMIT 1");
+    if ($tmp['primary_support'] == 0) {
+        foreach ($reg as $key => $entry) {
+            if ($entry['directory'] === 'primary_support') {
+                unset($reg[$key]);
+            }
+        }
+    }
+}
+
+
 $old_category = '';
 
   $DivId=1;
@@ -577,7 +592,7 @@ if (!empty($reg)) {
                 $DivId++;
             }
             $StringEcho .= "<tr><td style='border-top: 1px solid #000000;padding:0px;'><a onclick=\"openNewForm('" .
-                $rootdir . "/patient_file/encounter/load_form.php?formname=" . urlencode($entry['directory']) .
+                $rootdir . "/patient_file/encounter/load_form.php?formname=" . urlencode($entry['directory']) . "&encounter=" .$encounter .
                 "', '" . addslashes(xl_form_title($nickname)) . "')\" href='JavaScript:void(0);'>" .
                 text(xl_form_title($nickname)) . "</a></td></tr>";
         }

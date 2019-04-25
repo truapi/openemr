@@ -20,7 +20,7 @@ require_once(dirname(__FILE__) . "/../../globals.php");
 // session work in the future, then will need to remove this line.
 session_write_close();
 
-function getPatients($patient_id) {
+function printPrimarySupportPatient($patient_id) {
     global $sqlconf;
     $host = $sqlconf["host"];
     $port = $sqlconf["port"];
@@ -46,5 +46,5 @@ function getPatients($patient_id) {
     mysqli_close($dbh);
 }
 
-getPatients($pid);
+printPrimarySupportPatient($pid);
 ?>
