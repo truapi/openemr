@@ -39,7 +39,7 @@ DROP TABLE IF EXISTS `form_assessment_answers`;
 CREATE TABLE `form_assessment_answers` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `question_id` int(11) DEFAULT NULL,
-  `answer` varchar(100) DEFAULT NULL,
+  `answer` longtext DEFAULT NULL,
   `encounter` int(11) DEFAULT NULL,
   `more` longtext,
   KEY `id` (`id`)
