@@ -2057,7 +2057,6 @@ $(document).ready(function(){
         <?php // can add any additional javascript settings to datetimepicker here; need to prepend first setting with a comma ?>
     });
 
-    navigateToNewEncounter();
 });
 
 function are_days_checked(){

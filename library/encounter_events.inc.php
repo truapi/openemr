@@ -71,7 +71,7 @@ function calendar_arrived($form_pid)
 //===============================================================================
 // Checks for the patient's encounter ID for today, creating it if there is none.
 //
-function todaysEncounterCheck($patient_id, $enc_date = '', $reason = '', $fac_id = '', $billing_fac = '', $provider = '', $cat = '', $return_existing = true, $ps_patient_id = '')
+function todaysEncounterCheck($patient_id, $enc_date = '', $reason = '', $fac_id = '', $billing_fac = '', $provider = '', $cat = '', $return_existing = true, $ps_patient_id = 0)
 {
     global $today;
     $encounter = todaysEncounterIf($patient_id);
