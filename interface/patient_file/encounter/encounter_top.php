@@ -47,6 +47,8 @@ if (!empty($_GET['formname'])) {
         "<iframe name='enctabs-2' frameborder='0' style='height:100%;width:100%;' src='$url'>Oops</iframe>",
         true
     );
+} else {
+
 }
 
 // This is for making the page title which will be picked up as the tab label.

@@ -1166,7 +1166,7 @@ function newPrimarySupportPatient($patient_id, $support_id) {
     return $db_id;
 }
 
-function getPrimarySupportPatient($patient_id) {
+function getPrimarySupportPatient($patient_id = null) {
     global $sqlconf;
     $host = $sqlconf["host"];
     $port = $sqlconf["port"];
@@ -1179,8 +1179,11 @@ function getPrimarySupportPatient($patient_id) {
     }
     $query  =
         "SELECT patient_data.* FROM patient_data " .
-        "INNER JOIN patient_support ON patient_data.id = patient_support.sid " .
-        "WHERE patient_support.pid = '$patient_id'";
+        "INNER JOIN patient_support ON patient_data.id = patient_support.sid ";
+
+    if ($patient_id) {
+        $query = $query . "WHERE patient_support.pid = '$patient_id'";
+    }
 
     $result = mysqli_query($dbh, $query);
     while($patient_data = mysqli_fetch_array($result)) {

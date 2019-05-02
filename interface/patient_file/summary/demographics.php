@@ -616,19 +616,19 @@ while ($gfrow = sqlFetchArray($gfres)) {
     var EncounterIdArray = new Array;
     var Count = 0;
     <?php
-//Encounter details are stored to javacript as array.
+    //Encounter details are stored to javacript as array.
     $result4 = sqlStatement("SELECT fe.encounter,fe.date,openemr_postcalendar_categories.pc_catname FROM form_encounter AS fe " .
         " left join openemr_postcalendar_categories on fe.pc_catid=openemr_postcalendar_categories.pc_catid  WHERE fe.pid = ? order by fe.date desc", array($pid));
     if (sqlNumRows($result4) > 0) {
         while ($rowresult4 = sqlFetchArray($result4)) {
-            ?>
-    EncounterIdArray[Count] = '<?php echo addslashes($rowresult4['encounter']); ?>';
-    EncounterDateArray[Count] =
-      '<?php echo addslashes(oeFormatShortDate(date("Y-m-d", strtotime($rowresult4['date'])))); ?>';
-    CalendarCategoryArray[Count] = '<?php echo addslashes(xl_appt_category($rowresult4['pc_catname'])); ?>';
-    Count++;
-    <?php
-}
+                    ?>
+            EncounterIdArray[Count] = '<?php echo addslashes($rowresult4['encounter']); ?>';
+            EncounterDateArray[Count] =
+            '<?php echo addslashes(oeFormatShortDate(date("Y-m-d", strtotime($rowresult4['date'])))); ?>';
+            CalendarCategoryArray[Count] = '<?php echo addslashes(xl_appt_category($rowresult4['pc_catname'])); ?>';
+            Count++;
+            <?php
+        }
     }
     ?>
     parent.left_nav.setPatientEncounter(EncounterIdArray, EncounterDateArray, CalendarCategoryArray);
@@ -670,11 +670,11 @@ while ($gfrow = sqlFetchArray($gfres)) {
     }
 
     <?php
-// This is for layout font size override.
-$grparr = array();
-getLayoutProperties('DEM', $grparr, 'grp_size');
-if (!empty($grparr['']['grp_size'])) {
-    $FONTSIZE = $grparr['']['grp_size'];
+        // This is for layout font size override.
+        $grparr = array();
+        getLayoutProperties('DEM', $grparr, 'grp_size');
+        if (!empty($grparr['']['grp_size'])) {
+        $FONTSIZE = $grparr['']['grp_size'];
     ?>
     /* Override font sizes in the theme. */
     #DEM .groupname {
@@ -691,7 +691,7 @@ if (!empty($grparr['']['grp_size'])) {
     }
     <?php }?>
 
-</style>
+    </style>
 
 </head>
 

@@ -213,7 +213,13 @@ if (empty($collectthis)) {
         // And auto-create a new encounter if appropriate.
         if (!empty($_POST['form_pid'])) {
             if ($GLOBALS['auto_create_new_encounters'] && $event_date == date('Y-m-d') && (is_checkin($_POST['form_apptstatus']) == '1') && !is_tracker_encounter_exist($event_date, $appttime, $_POST['form_pid'], $_GET['eid'])) {
-                $encounter = todaysEncounterCheck($_POST['form_pid'], $event_date, $_POST['form_comments'], $_POST['facility'], $_POST['billing_facility'], $_POST['form_provider'], $_POST['form_category'], false);
+                // This is when category is primary support patient and primary support patient is chosen
+                // if ($_POST['form_ps_patient'] && $_POST['form_category'] === 16) {
+                //     $encounter = todaysEncounterCheck($_POST['form_pid'], $event_date, $_POST['form_comments'], $_POST['facility'], $_POST['billing_facility'], $_POST['form_provider'], $_POST['form_category'], false, $_POST['form_ps_patient']);
+                // } else {
+                //     $encounter = todaysEncounterCheck($_POST['form_pid'], $event_date, $_POST['form_comments'], $_POST['facility'], $_POST['billing_facility'], $_POST['form_provider'], $_POST['form_category'], false);
+                // }
+                $encounter = todaysEncounterCheck($_POST['form_pid'], $event_date, $_POST['form_comments'], $_POST['facility'], $_POST['billing_facility'], $_POST['form_provider'], $_POST['form_category'], false, $_POST['form_ps_patient']);
                 if ($encounter) {
                         $info_msg .= xl("New encounter created with id");
                         $info_msg .= " $encounter";
@@ -596,6 +602,7 @@ if (empty($collectthis)) {
                         sqlStatement("UPDATE openemr_postcalendar_events SET " .
                         "pc_catid = '" . add_escape_custom($_POST['form_category']) . "', " .
                         "pc_pid = '" . add_escape_custom($_POST['form_pid']) . "', " .
+                        "pc_p_s_pid = '" . add_escape_custom($_POST['form_ps_patient']) . "', " .
                         "pc_title = '" . add_escape_custom($_POST['form_title']) . "', " .
                         "pc_time = NOW(), " .
                         "pc_hometext = '" . add_escape_custom($_POST['form_comments']) . "', " .
@@ -692,6 +699,7 @@ if (empty($collectthis)) {
                     "pc_catid = '" . add_escape_custom($_POST['form_category']) . "', " .
                     "pc_aid = '" . add_escape_custom($prov) . "', " .
                     "pc_pid = '" . add_escape_custom($_POST['form_pid']) . "', " .
+                    "pc_p_s_pid = '" . add_escape_custom($_POST['form_ps_patient']) . "', " .
                     "pc_title = '" . add_escape_custom($_POST['form_title']) . "', " .
                     "pc_time = NOW(), " .
                     "pc_hometext = '" . add_escape_custom($_POST['form_comments']) . "', " .
@@ -1143,11 +1151,15 @@ while ($crow = sqlFetchArray($cres)) {
    var catid = s.options[s.selectedIndex].value;
    var style_apptstatus = document.getElementById('title_apptstatus').style;
    var style_prefcat = document.getElementById('title_prefcat').style;
+   var primary_support = document.getElementById('primary_support');
+   primary_support.style.display = 'none';
    if (catid == '2') { // In Office
     style_apptstatus.display = 'none';
     style_prefcat.display = '';
     f.form_apptstatus.style.display = 'none';
     f.form_prefcat.style.display = '';
+   } else if (catid == '16') {
+        primary_support.style.display = '';
    } else {
     style_prefcat.display = 'none';
     style_apptstatus.display = '';
@@ -1262,6 +1274,10 @@ while ($crow = sqlFetchArray($cres)) {
 
  }
 
+ function set_ps_patient() {
+
+ }
+
  // Constants used by dateChanged() function.
  var occurNames = new Array(
   '<?php echo xls("1st"); ?>',
@@ -1364,6 +1380,7 @@ var weekDays = new Array(
 </head>
 
 <body class="body_top main-calendar-add_edit_event">
+    <?php echo $_POST['form_ps_patient']; ?>
 <div class="container-responsive">
 <form class="form-inline" method='post' name='theform' id='theform' action='add_edit_event.php?eid=<?php echo attr($eid) ?>' />
 <!-- ViSolve : Requirement - Redirect to Create New Patient Page -->
@@ -1583,6 +1600,23 @@ if ($_GET['prov']==true) {
         <?php
     }
     ?>
+    <tr id="primary_support" style="display: none;">
+        <td nowrap>
+            <b><?php echo xlt('Primary Support'); ?>:</b>
+        </td>
+        <td nowrap>
+            <select id="ps_patient" class='input-sm' name='form_ps_patient' onchange='set_ps_patient()' style='width:100%'>
+                <?php
+                $patients = getPrimarySupportPatient($patientid);
+                foreach ($patients as $patient) {
+                    echo "<option value=\"".attr($patient["id"])."\" ";
+                    echo ">" . text(attr($patient["lname"]) . attr($patient["fname"]));
+                    echo "</option>\n";
+                }
+                ?>
+            </select>
+        </td>
+    </tr>
 <?php
 if ($_GET['group']==true &&  $have_group_global_enabled) {
     ?>
@@ -2023,6 +2057,7 @@ $(document).ready(function(){
         <?php // can add any additional javascript settings to datetimepicker here; need to prepend first setting with a comma ?>
     });
 
+    navigateToNewEncounter();
 });
 
 function are_days_checked(){

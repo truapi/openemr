@@ -74,7 +74,7 @@ EOD;
             .ui-tabs { direction: rtl; }
             .ui-tabs .ui-tabs-nav li.ui-tabs-tab {float: right; }
             .ui-tabs .ui-tabs-nav li a { float: right; }
-                
+
 EOD;
             }
         }
@@ -126,6 +126,8 @@ function twSetup(tabsid) {
     var panelId = $(this).prev().attr("href").substring(1);
     twCloseTab(mytabsid, panelId);
   });
+  var oldcount = twObject[tabsid].tabs.find(".ui-tabs-nav li").length;
+  twObject[tabsid].tabs.tabs("option", "active", oldcount-1);
 }
 
 // Get the ID that will be used for the next added tab. Nothing is changed.
