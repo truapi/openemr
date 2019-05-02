@@ -48,5 +48,14 @@ function fetchCategoryIdByEncounter($encounter)
 
 function createEncounter($patient_id, $primary_patient_id) {
     $enc_id = generate_id();
-    return sqlInsert("INSERT INTO form_encounter (date, pid, encounter, primary_support) VALUES(?,?,?,?)", array(date('Y-m-d H:i:s'), $patient_id, $enc_id, $primary_patient_id));
+    sqlInsert("INSERT INTO form_encounter (date, pid, encounter, primary_support, pc_catid) VALUES(?,?,?,?,?)", array(date('Y-m-d H:i:s'), $patient_id, $enc_id, $primary_patient_id, 16));
+    return $enc_id;
+}
+
+function fetchEncounterDataById($encounter) {
+    global $attendant_type;
+    $table = $attendant_type == 'pid' ? 'form_encounter' : 'form_groups_encounter';
+    $sql = "select * from $table where encounter=? limit 1";
+    $result = sqlQuery($sql, array($encounter));
+    return $result;
 }

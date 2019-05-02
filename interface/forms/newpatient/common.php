@@ -572,6 +572,7 @@ $('#pc_catid').on('change', function () {
         $('#ps-wrapper').show();
     } else {
         $('#ps-wrapper').hide();
+        $('#ps-wrapper').val(0);
     }
 })
 <?php if ($GLOBALS['enable_group_therapy']) { ?>

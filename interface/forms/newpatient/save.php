@@ -36,7 +36,7 @@ $facilityService = new FacilityService();
 $date             = (isset($_POST['form_date']))            ? DateToYYYYMMDD($_POST['form_date']) : '';
 $onset_date       = (isset($_POST['form_onset_date']))      ? DateToYYYYMMDD($_POST['form_onset_date']) : '';
 $sensitivity      = (isset($_POST['form_sensitivity']))     ? $_POST['form_sensitivity'] : '';
-$primary_support  = (isset($_POST['primary_support']))      ? $_POST['primary_support'] : '';
+$primary_support  = (isset($_POST['primary_support']) && $_POST['primary_support'] !== 0)      ? $_POST['primary_support'] : '';
 $pc_catid         = (isset($_POST['pc_catid']))             ? $_POST['pc_catid'] : '';
 $facility_id      = (isset($_POST['facility_id']))          ? $_POST['facility_id'] : '';
 $billing_facility = (isset($_POST['billing_facility']))     ? $_POST['billing_facility'] : '';

@@ -213,7 +213,13 @@ if (empty($collectthis)) {
         // And auto-create a new encounter if appropriate.
         if (!empty($_POST['form_pid'])) {
             if ($GLOBALS['auto_create_new_encounters'] && $event_date == date('Y-m-d') && (is_checkin($_POST['form_apptstatus']) == '1') && !is_tracker_encounter_exist($event_date, $appttime, $_POST['form_pid'], $_GET['eid'])) {
-                $encounter = todaysEncounterCheck($_POST['form_pid'], $event_date, $_POST['form_comments'], $_POST['facility'], $_POST['billing_facility'], $_POST['form_provider'], $_POST['form_category'], false);
+                // This is when category is primary support patient and primary support patient is chosen
+                // if ($_POST['form_ps_patient'] && $_POST['form_category'] === 16) {
+                //     $encounter = todaysEncounterCheck($_POST['form_pid'], $event_date, $_POST['form_comments'], $_POST['facility'], $_POST['billing_facility'], $_POST['form_provider'], $_POST['form_category'], false, $_POST['form_ps_patient']);
+                // } else {
+                //     $encounter = todaysEncounterCheck($_POST['form_pid'], $event_date, $_POST['form_comments'], $_POST['facility'], $_POST['billing_facility'], $_POST['form_provider'], $_POST['form_category'], false);
+                // }
+                $encounter = todaysEncounterCheck($_POST['form_pid'], $event_date, $_POST['form_comments'], $_POST['facility'], $_POST['billing_facility'], $_POST['form_provider'], $_POST['form_category'], false, $_POST['form_ps_patient']);
                 if ($encounter) {
                         $info_msg .= xl("New encounter created with id");
                         $info_msg .= " $encounter";
@@ -2051,6 +2057,7 @@ $(document).ready(function(){
         <?php // can add any additional javascript settings to datetimepicker here; need to prepend first setting with a comma ?>
     });
 
+    navigateToNewEncounter();
 });
 
 function are_days_checked(){
