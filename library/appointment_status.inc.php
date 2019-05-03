@@ -22,7 +22,7 @@ function updateAppointmentStatus($pid, $encdate, $newstatus)
     }
 
     $query = "SELECT pc_eid, pc_aid, pc_catid, pc_apptstatus, pc_eventDate, pc_startTime, " .
-    "pc_hometext, pc_facility, pc_billing_location, pc_room " .
+    "pc_hometext, pc_facility, pc_billing_location, pc_room, pc_p_s_pid as pc_p_s_pid  " .
     "FROM openemr_postcalendar_events WHERE " .
     "pc_pid = ? AND pc_recurrtype = 0 AND pc_eventDate = ? " .
     "ORDER BY pc_startTime DESC, pc_eid DESC LIMIT 1";
@@ -47,6 +47,7 @@ function updateAppointmentStatus($pid, $encdate, $newstatus)
             $tmp['pc_billing_location'],
             $tmp['pc_aid'],
             $tmp['pc_catid'],
+            $tmp['pc_p_s_pid'],
             false
         );
         manage_tracker_status(
