@@ -1943,6 +1943,13 @@ $GLOBALS_METADATA = array(
             xl('If enabled, uses the specified active directory for login and authentication.')
         ),
 
+        'account_prefix' => array(
+            xl('Active Directory - Prefix Of Account'),
+            'text',
+            '',
+            xl('The prefix of the account.')
+        ),
+
         'account_suffix' => array(
             xl('Active Directory - Suffix Of Account'),
             'text',
@@ -1962,6 +1969,27 @@ $GLOBALS_METADATA = array(
             'text',
             '',
             xl('The IP address of your domain controller(s).')
+        ),
+
+        'use_tls' => array(
+            xl('Active Directory - Use TLS'),
+            'bool',
+            '0',
+            xl('Use TLS to connect to domain controller(s).')
+        ),
+
+        'ad_username' => array(
+            xl('Active Directory - Username'),
+            'text',
+            '',
+            xl('Username to connect to domain controller(s).')
+        ),
+
+        'ad_password' => array(
+            xl('Active Directory - Password'),
+            'encrypted',
+            '',
+            xl('Password to connect to domain controller(s).')
         ),
 
     ),

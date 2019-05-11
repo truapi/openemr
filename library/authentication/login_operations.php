@@ -16,6 +16,7 @@
 require_once(dirname(__FILE__) . "/common_operations.php");
 
 use OpenEMR\Common\Logging\EventAuditLogger;
+use OpenEMR\Common\Crypto\CryptoGen;
 
 /**
  *
@@ -150,9 +151,12 @@ function active_directory_validation($user, $pass)
     // Create class instance
     $ad = new Adldap\Adldap();
 
+    $cryptoGen = new CryptoGen();
+
     // Create a configuration array.
     $config = array(
         // Your account suffix, for example: jdoe@corp.acme.org
+        'account_prefix'        => $GLOBALS['account_prefix'],
         'account_suffix'        => $GLOBALS['account_suffix'],
 
         // You can use the host name or the IP address of your controllers.
@@ -161,10 +165,12 @@ function active_directory_validation($user, $pass)
         // Your base DN.
         'base_dn'               => $GLOBALS['base_dn'],
 
+        'use_tls' => (bool)$GLOBALS['use_tls'],
+
         // The account to use for querying / modifying users. This
         // does not need to be an actual admin account.
-        'username'        => $user,
-        'password'        => $pass,
+        'username'        => $GLOBALS['ad_username'],
+        'password'        => $cryptoGen->decryptStandard($GLOBALS['ad_password']),
     );
 
     // Add a connection provider to Adldap.
@@ -172,7 +178,7 @@ function active_directory_validation($user, $pass)
 
     // If a successful connection is made, the provider will be returned.
     try {
-        $prov = $ad->connect('', $user.$GLOBALS['account_suffix'], $pass);
+        $prov = $ad->connect();
         $valid = $prov->auth()->attempt($user, $pass, true);
     } catch (Exception $e) {
         error_log($e->getMessage());
