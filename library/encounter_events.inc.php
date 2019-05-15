@@ -71,10 +71,18 @@ function calendar_arrived($form_pid)
 //===============================================================================
 // Checks for the patient's encounter ID for today, creating it if there is none.
 //
-function todaysEncounterCheck($patient_id, $enc_date = '', $reason = '', $fac_id = '', $billing_fac = '', $provider = '', $cat = '', $return_existing = true, $ps_patient_id = 0)
+function todaysEncounterCheck($patient_id, $enc_date = '', $reason = '', $fac_id = '', $billing_fac = '',
+    $provider = '', $cat = '', $return_existing = true, $ps_patient_id = 0)
 {
     global $today;
-    $encounter = todaysEncounterIf($patient_id);
+    // If Primary Support Patient is not 0, Primary Support Patient should be patient and patient should be supported_patient
+    // When Primary Support ID from openemr_postcalendar_categories is 16
+
+    if ($ps_patient_id > 0 && $cat == 16) {
+        $encounter = todaysEncounterIf($ps_patient_id);
+    } else {
+        $encounter = todaysEncounterIf($patient_id);
+    }
     if ($encounter) {
         if ($return_existing) {
             return $encounter;
@@ -115,11 +123,12 @@ function todaysEncounterCheck($patient_id, $enc_date = '', $reason = '', $fac_id
             "pid = ?, " .
             "encounter = ?, " .
             "pc_catid = ?, ".
-            "primary_support = ?",
-            array($dos,$visit_reason,$facility,$facility_id,$billing_facility,$visit_provider,$patient_id,$encounter,$visit_cat,$ps_patient_id)
+            "supported_patient = ?",
+            array($dos,$visit_reason,$facility,$facility_id,$billing_facility,$visit_provider,
+                ($ps_patient_id>0&&$cat==16)?$ps_patient_id:$patient_id,$encounter,$visit_cat,($ps_patient_id>0&&$cat==16)?$patient_id:0)
         ),
         "newpatient",
-        $patient_id,
+        ($ps_patient_id>0&&$cat==16)?$ps_patient_id:$patient_id,
         "1",
         "NOW()",
         $username

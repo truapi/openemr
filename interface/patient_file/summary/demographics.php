@@ -14,6 +14,7 @@
 
 require_once "../../globals.php";
 require_once "$srcdir/patient.inc";
+require_once "$srcdir/patient_risk.inc";
 require_once "$srcdir/acl.inc";
 require_once "$srcdir/options.inc.php";
 require_once "../history/history.inc.php";
@@ -27,6 +28,9 @@ require_once dirname(__FILE__) . "/../../../library/appointments.inc.php";
 use OpenEMR\Core\Header;
 use OpenEMR\Menu\PatientMenuRole;
 use OpenEMR\Reminder\BirthdayReminder;
+use Doctrine\DBAL\Driver\SQLSrv\SQLSrvStatement;
+use function GuzzleHttp\json_encode;
+use function GuzzleHttp\json_decode;
 
 if (isset($_GET['set_pid'])) {
     include_once "$srcdir/pid.inc";
@@ -153,6 +157,7 @@ $vitals_is_registered = $tmp['count'];
 // Get patient/employer/insurance information.
 //
 $result = getPatientData($pid, "*, DATE_FORMAT(DOB,'%Y-%m-%d') as DOB_YMD");
+$risk = getPatientMetaData('Risk',$pid);
 $result2 = getEmployerData($pid);
 $result3 = getInsuranceData($pid, "primary", "copay, provider, DATE_FORMAT(`date`,'%Y-%m-%d') as effdate");
 $insco_name = "";
@@ -606,10 +611,12 @@ while ($gfrow = sqlFetchArray($gfres)) {
       return;
     }
     <?php if (isset($_GET['set_pid'])) {?>
+
     parent.left_nav.setPatient(
       <?php echo "'" . addslashes($result['fname']) . " " . addslashes($result['lname']) .
     "'," . addslashes($pid) . ",'" . addslashes($result['pubpid']) .
-    "','', ' " . xls('DOB') . ": " . addslashes(oeFormatShortDate($result['DOB_YMD'])) . " " . xls('Age') . ": " . addslashes(getPatientAgeDisplay($result['DOB_YMD'])) . "'"; ?>
+    "','', ' " . xls('DOB') . ": " . addslashes(oeFormatShortDate($result['DOB_YMD'])) . " " . xls('Age') . ": " . addslashes(getPatientAgeDisplay($result['DOB_YMD'])) .
+    "',".$risk['value']; ?>
     );
     var EncounterDateArray = new Array;
     var CalendarCategoryArray = new Array;
@@ -662,6 +669,44 @@ while ($gfrow = sqlFetchArray($gfres)) {
   });
   </script>
 
+  <style>
+    :root {
+        --highest-bg-color: #c13030;
+        --high-bg-color: #ec8835;
+        --elevated-bg-color: #eeef26;
+        --moderate-bg-color: #26b0ef;
+        --low-bg-color: #23b934;
+    }
+    .highest {
+        background: var(--highest-bg-color);
+        color: white;
+        padding: 3px;
+    }
+    .high {
+        background: var(--high-bg-color);
+        color: white;
+        padding: 3px;
+    }
+    .elevated {
+        background: var(--elevated-bg-color);
+        color: #284229;
+        padding: 3px;
+    }
+    .moderate {
+        background: var(--moderate-bg-color);
+        color: white;
+        padding: 3px;
+    }
+    .low {
+        background: var(--low-bg-color);
+        color: white;
+        padding: 3px;
+    }
+    .none {
+
+    }
+  </style>
+
   <style type="css/text">
 
     #pnotes_ps_expand {
@@ -703,6 +748,7 @@ while ($gfrow = sqlFetchArray($gfres)) {
   <a href='../birthday_alert/birthday_pop.php?pid=<?php echo attr($pid); ?>&user_id=<?php echo attr($_SESSION['authId']); ?>'
     id='birthday_popup' style='display: none;' onclick='top.restoreSession()'></a>
   <?php
+
 $thisauth = acl_check('patients', 'demo');
 if ($thisauth) {
     if ($result['squad'] && !acl_check('squads', $result['squad'])) {
@@ -1506,6 +1552,96 @@ while ($gfrow = sqlFetchArray($gfres)) {
 } // end while
 ?>
 
+
+  <?php
+  // Here we display Primary Support results such as Assessment
+    $ps_query = sqlStatement("SELECT * FROM registry WHERE directory='primary_support'");
+    while ($ps_item = sqlFetchArray($ps_query)) {
+  ?>
+      <tr>
+        <td width='650px'>
+          <?php // vitals expand collapse widget
+            $widgetTitle = $ps_item['name'];
+            $widgetLabel = $ps_item['name'];
+            $widgetButtonLabel = $ps_item['name'];
+            $widgetButtonLink = "";
+            $widgetButtonClass = "";
+            $linkMethod = "html";
+            $bodyClass = "notab";
+            // check to see if any vitals exist
+            $widgetAuth = false;
+
+            $fixedWidth = true;
+            expand_collapse_widget(
+                $widgetTitle,
+                $widgetLabel,
+                $widgetButtonLabel,
+                $widgetButtonLink,
+                $widgetButtonClass,
+                $linkMethod,
+                $bodyClass,
+                $widgetAuth,
+                $fixedWidth
+            );
+
+            $g_encounter_query =
+                "SELECT form_encounter.*, pdata.fname as pdata_fname, pdata.lname as pdata_lname, supported_data.fname as supported_data_fname," .
+                " supported_data.lname as supported_data_lname, pdata_meta.value as pdata_value FROM form_encounter " .
+                " INNER JOIN patient_data as pdata ON pdata.id = form_encounter.pid " .
+                " INNER JOIN patient_data as supported_data ON supported_data.id = form_encounter.supported_patient " .
+                " INNER JOIN patient_meta as pdata_meta ON (pdata_meta.pid = pdata.id AND pdata_meta.encounter = form_encounter.encounter) " .
+                " OR (pdata_meta.pid = supported_data.id AND pdata_meta.encounter = form_encounter.encounter)" .
+                " WHERE (form_encounter.supported_patient = ? OR form_encounter.pid = ?) AND form_encounter.pc_catid = 16 " .
+                " ORDER BY encounter DESC";
+            $my_encounter = sqlQuery($g_encounter_query, array($pid, $pid));
+            function getRiskText($value) {
+                if ($value > 90) {
+                    return 'Highest';
+                } else if ($value > 60) {
+                    return 'High';
+                } else if ($value > 30) {
+                    return 'Elevated';
+                } else if ($value > 10) {
+                    return 'Moderate';
+                } else if ($value > 0) {
+                    return 'Low';
+                };
+            }
+
+            function getRiskCss($value) {
+                if ($value > 90) {
+                    return 'highest';
+                } else if ($value > 60) {
+                    return 'high';
+                } else if ($value > 30) {
+                    return 'elevated';
+                } else if ($value > 10) {
+                    return 'moderate';
+                } else if ($value > 0) {
+                    return 'low';
+                };
+            }
+            ?>
+            <br />
+            <div style='margin-left:10px;' class='text'>
+                <?php
+                /* echo $my_encounter; */
+                if ($my_encounter && $my_encounter['pid'] == $pid) {
+                    echo "Primary Support Asessment by ".$my_encounter['pdata_fname'].", ".$my_encounter['pdata_lname']." at " . explode(" ", $my_encounter['date'])[0] .
+                        " is <span class='".getRiskCss($my_encounter['pdata_value'])."'> ". getRiskText($my_encounter['pdata_value']) ." </span>";
+                } else if ($my_encounter && $my_encounter['supported_patient'] == $pid) {
+                    echo "Primary Support Asessment for ".$my_encounter['supported_data_fname'].", ".$my_encounter['supported_data_lname']." at " . explode(" ", $my_encounter['date'])[0] .
+                        " is <span class='".getRiskCss($my_encounter['pdata_value'])."'> ". getRiskText($my_encounter['pdata_value']) ." </span>";
+                }
+                ?>
+            </div>
+            <br />
+            </div>
+        </td>
+      </tr>
+  <?php
+    }
+  ?>
   </table>
 
   </div>

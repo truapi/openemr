@@ -755,6 +755,35 @@ if ($acl_version < $upgrade_acl) {
 }
 */
 
+$upgrade_acl = 11;
+if ($acl_version < $upgrade_acl) {
+    $gacl->add_object_section('Medical Director', 'medical', 10, 0, 'ACO');
+    // xl('Medical Director')
+
+    // Create ACO for medical (Assessments).
+    $gacl->add_object('medical', 'Review - all assessments', 'medical', 10, 0, 'ACO');
+    // xl('Review - all assessments')
+
+    $medical  = $gacl->add_group('medical', 'Medical Director', $users, 'ARO');
+    // xl('Medical Director')
+
+    // Set permissions for Medical (Assessment review).
+    //
+    $gacl->add_acl(
+        array(
+            'medical'=>array('medical')
+        ),
+        null,
+        array($medical),
+        null,
+        null,
+        1,
+        1,
+        'write',
+        'Medical Director from Access Control for Assessment review'
+    );
+    // xl('Medical Director from Access Control for Assessment review')
+}
 //All done
 $response = set_acl_version($acl_version);
 

@@ -1109,6 +1109,21 @@ while ($crow = sqlFetchArray($cres)) {
 
 <?php require($GLOBALS['srcdir'] . "/restoreSession.php"); ?>
 
+ function initializePrimarySupport(pid) {
+    var supporting_patients = <?php echo json_encode(getPrimarySupportsOfPatient()) ?>;
+    var arr = supporting_patients.filter(v => {
+        return v.pid === pid;
+    })
+    var select = document.getElementById('ps_patient');
+    if (!select) {
+        return;
+    }
+    select.options.length = 0;
+    arr.forEach((opt) => {
+        select.options[select.options.length] = new Option(opt.fname + " " + opt.lname, opt.id, false, false);
+    })
+ }
+
  // This is for callback by the find-patient popup.
  function setpatient(pid, lname, fname, dob) {
   var f = document.forms[0];
@@ -1116,6 +1131,7 @@ while ($crow = sqlFetchArray($cres)) {
   f.form_pid.value = pid;
   dobstyle = (dob == '' || dob.substr(5, 10) == '00-00') ? '' : 'none';
   document.getElementById('dob_row').style.display = dobstyle;
+  initializePrimarySupport(pid);
  }
 
  // This invokes the find-patient popup.
@@ -1158,7 +1174,7 @@ while ($crow = sqlFetchArray($cres)) {
     style_prefcat.display = '';
     f.form_apptstatus.style.display = 'none';
     f.form_prefcat.style.display = '';
-   } else if (catid == '16') {
+   } else if (catid == '16') { // Primary Support Patient
         primary_support.style.display = '';
    } else {
     style_prefcat.display = 'none';
@@ -1607,11 +1623,13 @@ if ($_GET['prov']==true) {
         <td nowrap>
             <select id="ps_patient" class='input-sm' name='form_ps_patient' onchange='set_ps_patient()' style='width:100%'>
                 <?php
-                $patients = getPrimarySupportPatient($patientid);
-                foreach ($patients as $patient) {
-                    echo "<option value=\"".attr($patient["id"])."\" ";
-                    echo ">" . text(attr($patient["lname"]) . attr($patient["fname"]));
-                    echo "</option>\n";
+                $priamry_patients = getPrimarySupportsOfPatient($patientid);
+                if ($patientid) {
+                    foreach ($priamry_patients as $patient) {
+                        echo "<option value=\"".attr($patient["id"])."\" ";
+                        echo ">" . text(attr($patient["fname"]) ." ". attr($patient["lname"]));
+                        echo "</option>\n";
+                    }
                 }
                 ?>
             </select>

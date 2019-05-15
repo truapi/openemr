@@ -11,11 +11,24 @@
  */
 require_once("../../globals.php");
 require_once("$srcdir/assessment.inc");
+require_once("$srcdir/patient_risk.inc");
 
+$pid = isset($_POST["pid"]) ? $_POST["pid"]: '';
 $question_id = isset($_POST["question_id"]) ? $_POST["question_id"]: '';
 $answer = isset($_POST["answer"]) ? $_POST["answer"]: '';
 $encounter = isset($_POST["encounter"]) ? $_POST["encounter"]: '';
 $more = isset($_POST["more"]) ? $_POST["more"]: '';
-saveAssessmentAnswer($question_id, $answer, $encounter, $more);
+$questions = isset($_POST['questions']) ? json_decode($_POST['questions']): null;
+if ($questions) {
+    foreach($questions as $q) {
+        if (strlen($q->answer) > 0) {
+            saveAssessmentAnswer($q->id, $q->answer, $encounter, $q->more);
+            if ($q->type === 'chart') {
+                insertPatientMetaData($pid,'Risk',$q->answer, $encounter);
+            }
+        }
+        // saveAssessmentAnswer($question_id, $answer, $encounter, $more);
+    }
+}
 echo "done";
 ?>

@@ -533,7 +533,7 @@ $reg = myGetRegistered();
 if (isset($pid) && isset($encounter)) {
     $tmp = sqlQuery("SELECT * FROM form_encounter WHERE " .
     "pid = '$pid' AND encounter = '$encounter' LIMIT 1");
-    if ($tmp['primary_support'] == 0) {
+    if ($tmp['supported_patient'] == 0) {
         foreach ($reg as $key => $entry) {
             if ($entry['directory'] === 'primary_support') {
                 unset($reg[$key]);
