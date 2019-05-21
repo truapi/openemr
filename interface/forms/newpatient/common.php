@@ -59,6 +59,9 @@ function sensitivity_compare($a, $b)
 $ires = sqlStatement("SELECT id, type, title, begdate FROM lists WHERE " .
   "pid = ? AND enddate IS NULL " .
   "ORDER BY type, begdate", array($pid));
+
+// Gets patient's list who has being supported by this patient.
+$patients = getSupportingPatients($pid);
 ?>
 <!DOCTYPE html>
 <html>
@@ -234,6 +237,11 @@ ajax_bill_loc(pid,dte,facility);
             $therapyGroupCategories = [];
 
             while ($row = sqlFetchArray($visitResult)) {
+                // Remove Primary Support from dropdown if no patients are being supported by this patient.
+                if(sizeof($patients) === 0 && $row['pc_catname'] === 'Primary Support') {
+                    continue;
+                }
+
                 $catId = $row['pc_catid'];
                 $name = $row['pc_catname'];
 
@@ -386,15 +394,15 @@ echo ">" . xlt('None'). "</option>\n";
     </tr>
 
     <tr id="ps-wrapper" style="display: none">
-        <td class='bold' nowrap><?php echo xlt('Primary Support'); ?>:</td>
+        <td class='bold' nowrap><?php echo xlt('Patient'); ?>:</td>
         <td colspan="6">
-            <select class="form-control" name="primary_support">
+            <select class="form-control" name="supported_patient">
                 <option value='_blank'>-- <?php echo xlt('Select One'); ?> --</option>
                 <?php
-                $patients = getPrimarySupportPatient();
+                // $patients = getPrimaryOfSupportPatient($pid);
                 foreach ($patients as $patient) {
                     echo "<option value=\"".attr($patient["id"])."\" ";
-                    echo ">" . text(attr($patient["lname"]) . attr($patient["fname"]));
+                    echo ">" . text(attr($patient["fname"]) . " " . attr($patient["lname"]));
                     echo "</option>\n";
                 }
 

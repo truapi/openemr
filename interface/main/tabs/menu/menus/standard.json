@@ -1317,6 +1317,18 @@
         "icon": "fa-caret-right",
         "children": [
           {
+            "label": "Assessments",
+            "menu_id": "rep0",
+            "target": "rep",
+            "url": "/interface/reports/assessment_report.php",
+            "children": [],
+            "requirement": 0,
+            "acl_req": [
+              "medical",
+              "medical"
+            ]
+          },
+          {
             "label": "Daily Report",
             "menu_id": "rep0",
             "target": "rep",

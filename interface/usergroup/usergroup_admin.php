@@ -191,6 +191,17 @@ if (isset($_POST["privatemode"]) && $_POST["privatemode"] =="user_admin") {
             sqlStatement("update users set physician_type = '$physician_type' where id = ? ", array($_POST["id"]));
         }
 
+        if ($_POST["medical_director"]) {
+            $medical_director = formData('medical_director');
+            if ($medical_director == 1) {
+                sqlStatement("update users set medical_director = 1 where id = ? ", array($_POST["id"]));
+            } else {
+                sqlStatement("update users set medical_director = 0 where id = ? ", array($_POST["id"]));
+            }
+        } else {
+            sqlStatement("update users set medical_director = 0 where id = ? ", array($_POST["id"]));
+        }
+
         if ($_POST["main_menu_role"]) {
               $mainMenuRole = filter_input(INPUT_POST, 'main_menu_role');
               sqlStatement("update `users` set `main_menu_role` = ? where `id` = ? ", array($mainMenuRole, $_POST["id"]));

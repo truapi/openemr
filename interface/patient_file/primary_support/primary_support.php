@@ -85,7 +85,7 @@ $patient_id = ($_GET['patient_id']) ? $_GET['patient_id'] : "";
         <th></th>
         </tr>
         <?php
-            $patients = getPrimarySupportPatient($patient_id);
+            $patients = getPrimarySupportsOfPatient($patient_id);
             foreach($patients as $patient) {
                 ++$encount;
                 $bgclass = (($encount & 1) ? "bg1" : "bg2");
@@ -103,7 +103,7 @@ $patient_id = ($_GET['patient_id']) ? $_GET['patient_id'] : "";
                     <td><?php echo $patient['pubpid'] ?></td>
                     <td><?php echo $patient['pid'] ?></td>
                     <td class="small">
-                        <a href="../../forms/primary_support/new.php?patient_id=<?php echo $patient_id?>&primary_patient_id=<?php echo $patient['id'] ?>&back=1">Assessment</a>
+                        <a href="../../forms/primary_support/new.php?supported_patient_id=<?php echo $patient_id?>&patient_id=<?php echo $patient['id'] ?>&back=1">Assessment</a>
                     </td>
                     <td><input type='checkbox' name='form_active' value='<?php echo $patient['id'] ?>' /></td>
                 </tr>

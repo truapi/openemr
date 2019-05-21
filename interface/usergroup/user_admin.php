@@ -402,6 +402,12 @@ foreach (array(1 => xl('None'), 2 => xl('Only Mine'), 3 => xl('All')) as $key =>
 <tr>
   <td><span class="text"><?php echo xlt('Provider Type'); ?>: </span></td>
   <td><?php echo generate_select_list("physician_type", "physician_type", $iter['physician_type'], '', xl('Select Type'), 'physician_type_class', '', '', ''); ?></td>
+  <td class="medical_director_wrapper">
+    <span class="text">Medical Director:</span>
+  </td>
+  <td class="medical_director_wrapper">
+    <input type='checkbox' name='medical_director' value="1" <?php echo $iter["medical_director"]?'checked':'' ?> />
+  </td>
 </tr>
 <tr>
   <td>

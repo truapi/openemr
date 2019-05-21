@@ -46,9 +46,9 @@ function fetchCategoryIdByEncounter($encounter)
     return $result['pc_catid'];
 }
 
-function createEncounter($patient_id, $primary_patient_id) {
+function createEncounter($patient_id, $supported_patient_id) {
     $enc_id = generate_id();
-    sqlInsert("INSERT INTO form_encounter (date, pid, encounter, primary_support, pc_catid) VALUES(?,?,?,?,?)", array(date('Y-m-d H:i:s'), $patient_id, $enc_id, $primary_patient_id, 16));
+    sqlInsert("INSERT INTO form_encounter (date, pid, encounter, supported_patient, pc_catid) VALUES(?,?,?,?,?)", array(date('Y-m-d H:i:s'), $patient_id, $enc_id, $supported_patient_id, 16));
     return $enc_id;
 }
 
@@ -58,4 +58,26 @@ function fetchEncounterDataById($encounter) {
     $sql = "select * from $table where encounter=? limit 1";
     $result = sqlQuery($sql, array($encounter));
     return $result;
+}
+
+function getEncountersForAssessment($pid, $ps_id) {
+    global $sqlconf;
+    $host = $sqlconf["host"];
+    $port = $sqlconf["port"];
+    $login = $sqlconf["login"];
+    $pass = $sqlconf["pass"];
+    $dbase = $sqlconf["dbase"];
+    $dbh = mysqli_connect("$host", "$login", "$pass", $dbase, $port);
+    if (!$dbh) {
+        echo "MySQL connect failed";
+    };
+    $table = 'form_encounter';
+    $query = "select * from $table where pc_catid = 16 AND pid = $ps_id AND supported_patient = $pid";
+    $result = mysqli_query($dbh, $query);
+    while($encounter = mysqli_fetch_array($result)) {
+        if ($encounter) {
+            $res[] = $encounter;
+        }
+    }
+    return $res;
 }

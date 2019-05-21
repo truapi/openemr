@@ -1166,7 +1166,7 @@ function newPrimarySupportPatient($patient_id, $support_id) {
     return $db_id;
 }
 
-function getPrimarySupportPatient($patient_id = null) {
+function getPrimarySupportsOfPatient($patient_id = null) {
     global $sqlconf;
     $host = $sqlconf["host"];
     $port = $sqlconf["port"];
@@ -1178,7 +1178,7 @@ function getPrimarySupportPatient($patient_id = null) {
         echo "MySQL connect failed";
     }
     $query  =
-        "SELECT patient_data.* FROM patient_data " .
+        "SELECT patient_data.*, patient_support.pid FROM patient_data " .
         "INNER JOIN patient_support ON patient_data.id = patient_support.sid ";
 
     if ($patient_id) {
@@ -1197,6 +1197,34 @@ function getPrimarySupportPatient($patient_id = null) {
 function removePrimarySupportPatient($patient_id, $support_id) {
     $sql = "DELETE FROM patient_support WHERE pid = " . $patient_id . " AND sid = " . $support_id;
     return sqlQuery($sql);
+}
+
+function getSupportingPatients($patient_id = null) {
+    global $sqlconf;
+    $host = $sqlconf["host"];
+    $port = $sqlconf["port"];
+    $login = $sqlconf["login"];
+    $pass = $sqlconf["pass"];
+    $dbase = $sqlconf["dbase"];
+    $dbh = mysqli_connect("$host", "$login", "$pass", $dbase, $port);
+    if (!$dbh) {
+        echo "MySQL connect failed";
+    }
+    $query  =
+        "SELECT patient_data.*, patient_support.sid FROM patient_data " .
+        "INNER JOIN patient_support ON patient_data.id = patient_support.pid ";
+
+    if ($patient_id) {
+        $query = $query . "WHERE patient_support.sid = '$patient_id'";
+    }
+
+    $result = mysqli_query($dbh, $query);
+    while($patient_data = mysqli_fetch_array($result)) {
+        if ($patient_data) {
+            $res[] = $patient_data;
+        }
+    }
+    return $res;
 }
 
 function newEmployerData(

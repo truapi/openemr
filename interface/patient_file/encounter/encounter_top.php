@@ -33,11 +33,17 @@ if (isset($_GET["set_encounter"])) {
     setencounter($_GET["set_encounter"]);
 }
 
+if (isset($_GET["patient_id"])) {
+    $patient_id = $_GET["patient_id"];
+}
+
 $tabset = new TabsWrapper('enctabs');
-$tabset->declareInitialTab(
-    xl('Summary'),
-    "<iframe frameborder='0' style='height:100%;width:100%;' src='forms.php'>Oops</iframe>"
-);
+if (!isset($_GET["patient_id"])) {
+    $tabset->declareInitialTab(
+        xl('Summary'),
+        "<iframe frameborder='0' style='height:100%;width:100%;' src='forms.php'>Oops</iframe>"
+    );
+}
 // We might have been invoked to load a particular encounter form.
 // In that case it will be the second tab, and removable.
 if (!empty($_GET['formname'])) {

@@ -1009,7 +1009,7 @@ function fetchPostCalendarCategoryACO($pc_catid)
 function fetchPrimaryCategoryValue() {
     $aco = sqlQuery(
         "SELECT pc_catid FROM openemr_postcalendar_categories WHERE pc_catname = ? LIMIT 1",
-        ['Primary Support Patient']
+        ['Primary Support']
     );
     return $aco['pc_catid'];
 }

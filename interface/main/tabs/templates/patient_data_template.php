@@ -13,6 +13,43 @@
  * @copyright Copyright (c) 2017 Robert Down <robertdown@live.com>
  */
 ?>
+<style>
+    :root {
+        --highest-bg-color: #c13030;
+        --high-bg-color: #ec8835;
+        --elevated-bg-color: #eeef26;
+        --moderate-bg-color: #26b0ef;
+        --low-bg-color: #23b934;
+    }
+    .highest {
+        background: var(--highest-bg-color);
+        color: white;
+        padding: 3px;
+    }
+    .high {
+        background: var(--high-bg-color);
+        color: white;
+        padding: 3px;
+    }
+    .elevated {
+        background: var(--elevated-bg-color);
+        color: #284229;
+        padding: 3px;
+    }
+    .moderate {
+        background: var(--moderate-bg-color);
+        color: white;
+        padding: 3px;
+    }
+    .low {
+        background: var(--low-bg-color);
+        color: white;
+        padding: 3px;
+    }
+    .none {
+
+    }
+</style>
 <script type="text/html" id="patient-data-template">
     <div>
         <span class="patientDataColumn">
@@ -34,6 +71,8 @@
                     <a class="ptName" data-bind="click:refreshPatient,with: patient" href="#">
                         <span data-bind="text: pname()"></span>
                         (<span data-bind="text: pubpid"></span>)
+                        <span  data-bind="text: risk(),
+                            css: {highest: risk()>90, high: risk()>60&&risk()<=90, elevated: risk()>30&&risk()<=60, moderate: risk()>10&&risk<=30, low: risk()<10&&risk(), none: !risk()} "></span>
                     </a>
                 <!-- /ko -->
                 <!-- ko ifnot: patient -->

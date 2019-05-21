@@ -31,8 +31,9 @@ var left_nav = {
 
 };
 
-left_nav.setPatient = function(pname, pid, pubpid, frname, str_dob)
+left_nav.setPatient = function(pname, pid, pubpid, frname, str_dob, risk=null)
 {
+    console.log('Risk', risk);
     if(
         (app_view_model.application_data.patient()!==null)
         && (pid===app_view_model.application_data.patient().pid()))
@@ -40,10 +41,10 @@ left_nav.setPatient = function(pname, pid, pubpid, frname, str_dob)
         app_view_model.application_data.patient().pname(pname);
         app_view_model.application_data.patient().pubpid(pubpid);
         app_view_model.application_data.patient().str_dob(str_dob);
-
+        app_view_model.application_data.patient().risk(risk);
         return;
     }
-    var new_patient=new patient_data_view_model(pname,pid,pubpid,str_dob);
+    var new_patient=new patient_data_view_model(pname,pid,pubpid,str_dob,risk);
     app_view_model.application_data.patient(new_patient);
     app_view_model.application_data.therapy_group(null)
     navigateTab(webroot_url+"/interface/patient_file/history/encounters.php","enc");

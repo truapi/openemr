@@ -2,7 +2,7 @@
 include_once("../../globals.php");
 include_once("$srcdir/forms.inc");
 
-function getAssessmentQuestions() {
+function getAssessmentQuestions($encounter) {
     global $sqlconf;
     $host = $sqlconf["host"];
     $port = $sqlconf["port"];
@@ -14,7 +14,10 @@ function getAssessmentQuestions() {
         echo "MySQL connect failed";
     }
     $query  =
-        "SELECT * FROM form_assessment_questions";
+        "SELECT form_assessment_questions.*, form_assessment_answers.answer, form_assessment_answers.more ".
+        "FROM form_assessment_questions ".
+        "LEFT JOIN form_assessment_answers ON form_assessment_questions.id=form_assessment_answers.question_id AND form_assessment_answers.encounter=".$encounter.
+        " ORDER BY form_assessment_questions.id";
 
     $result = mysqli_query($dbh, $query);
     while($question = mysqli_fetch_array($result)) {
@@ -49,9 +52,9 @@ function getAssessmentAnswer($q_id, $encounter) {
     $query  =
         "SELECT * FROM form_assessment_answers WHERE question_id = " . $q_id . " AND encounter = " .$encounter;
     $result = mysqli_query($dbh, $query);
-    while($question = mysqli_fetch_array($result)) {
-        if ($question) {
-            $res[] = $question;
+    while($answer = mysqli_fetch_array($result)) {
+        if ($answer) {
+            $res[] = $answer;
         }
     }
     return $res;

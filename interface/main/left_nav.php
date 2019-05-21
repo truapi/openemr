@@ -786,7 +786,7 @@ function clearactive() {
  // patient-specific information from the previous patient.  frname is the name
  // of the frame that the call came from, so we know to only reload content
  // from the *other* frame if it is patient-specific.
- function setPatient(pname, pid, pubpid, frname, str_dob) {
+ function setPatient(pname, pid, pubpid, frname, str_dob, risk=null) {
   clearTherapyGroup();
   var str = '<a href=\'javascript:;\' onclick="parent.left_nav.loadCurrentPatientFromTitle()" title="PID = ' + pid + '"><b>' + pname + ' (' + pubpid + ')<br /></b></a>';
   setDivContent('current_patient', str);

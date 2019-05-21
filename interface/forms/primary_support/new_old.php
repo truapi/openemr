@@ -17,8 +17,8 @@ require_once("$srcdir/encounter.inc");
 
 use OpenEMR\Core\Header;
 
-$patient_id = isset($_GET['patient_id']) ? $_GET['patient_id'] : "";
-$supported_patient_id = isset($_GET['supported_patient_id']) ? $_GET['supported_patient_id'] : "";
+$patient_id = ($_GET['patient_id']) ? $_GET['patient_id'] : "";
+$primary_patient_id = ($_GET['primary_patient_id']) ? $_GET['primary_patient_id'] : "";
 ?>
 <html>
 <head>
@@ -61,21 +61,8 @@ $supported_patient_id = isset($_GET['supported_patient_id']) ? $_GET['supported_
         ul.tabNav a {
             color: #585858 !important;
         }
-        .quiz-wrapper {
-            margin-top: 20px;
-        }
-        .options {
-            padding-left: 20px;
-            padding-right: 20px;
-        }
         .extra {
-            margin-left: 20px;
-            margin-right: 20px;
-            margin-bottom: 5px;
-        }
-        .more-info {
-            margin-left: 20px;
-            margin-right: 20px;
+            margin-top: 20px;
         }
         .button-wrapper {
             margin-top: 20px;
@@ -184,22 +171,20 @@ $supported_patient_id = isset($_GET['supported_patient_id']) ? $_GET['supported_
 if ($encounter && !isset($_GET['patient_id'])) {
     $encounter_data = fetchEncounterDataById($encounter);
     $patient_id = $encounter_data['pid'];
-    $supported_patient_id = $encounter_data['supported_patient'];
+    $primary_patient_id = $encounter_data['primary_support'];
 }
 $patient = getPatientData($patient_id);
-$supported_patient = getPatientData($supported_patient_id);
+$primary_patient = getPatientData($primary_patient_id);
 if (isset($_GET['patient_id']) || !isset($encounter)) {
-    $encounter = createEncounter($patient_id, $supported_patient_id);
+    $encounter = createEncounter($patient_id, $primary_patient_id);
 }
-$q_s = getAssessmentQuestions($encounter);
+$q_s = getAssessmentQuestions();
 function generateOpt($q) {
     return array(
         'id' => $q['id'],
         'question' => $q['question'],
         'type' => $q['type'],
-        'options' => explode('|', $q['options']),
-        'answer' => $q['answer'],
-        'more' => $q['more']
+        'options' => explode('|', $q['options'])
     );
 }
 
@@ -212,7 +197,7 @@ $questions = array_map("generateOpt", $q_s);
     if (isset($_GET['patient_id'])) {
     ?>
     <script>
-        var url='/interface/patient_file/encounter/encounter_top.php?set_encounter=' + <?php echo $encounter; ?> + '&formname=primary_support&formdesc=Assessment&back=1&patient_id=<?=$patient_id?>';
+        var url='/interface/patient_file/encounter/encounter_top.php?set_encounter=' + <?php echo $encounter; ?> + '&formname=primary_support&formdesc=Assessment&back=1';
         window.location.href = url;
     </script>
     <?php
@@ -233,15 +218,15 @@ $questions = array_map("generateOpt", $q_s);
             <td>
                 <table class="inner_table">
                     <tr>
-                        <td>Patient :</td>
-                        <td><?php echo $supported_patient['fname'].' '.$supported_patient['lname'] ?></td>
+                        <td>Primary Support :</td>
+                        <td><?php echo $primary_patient['fname'].' '.$primary_patient['lname'] ?></td>
                     </tr>
                     <tr>
                         <td>Client #:</td>
                         <td>123</td>
                     </tr>
-                    <?php echo $supported_patient['email'] ?>
-                    <?php echo $supported_patient['phone_home'] ?>
+                    <?php echo $primary_patient['email'] ?>
+                    <?php echo $primary_patient['phone_home'] ?>
                 </table>
             </td>
             <td>
@@ -292,11 +277,23 @@ $questions = array_map("generateOpt", $q_s);
     <div class="tabContainer">
         <div class="tab current">
             <div class="row">
-                <div class="col-md-8 q-wrapper">
-
+                <div class="col-md-9">
+                    <div class="quiz-wrapper">
+                        <h4 class="question"></h4>
+                        <div class="row options">
+                        </div>
+                        <h5 class="extra">
+                            Add more information about this question:
+                        </h5>
+                        <textarea name="" rows="4" class="more-info" style="width: 100%;"></textarea>
+                    </div>
+                    <div class="button-wrapper text-right">
+                        <a href="javascript:void(0);" class="btn btn-prev">Previous</a>
+                        <a href="javascript:void(0);" class="btn btn-next">Next</a>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <h5 class="text-center"><b>Session Notes</b></h5>
+                <div class="col-md-3">
+                    <h5 class="extra text-center"><b>Session Notes</b></h5>
                     <textarea name="" rows="10" style="width: 100%;"></textarea>
                 </div>
             </div>
@@ -312,34 +309,50 @@ $questions = array_map("generateOpt", $q_s);
     var current_quiz = 0;
     var questions = <?php echo json_encode($questions) ?>;
     var encounter = <?php echo $encounter; ?>;
-    function genOption(question) {
+    function gen_quiz_form(index) {
         var ht = '';
-        if (question.type === 'radio') {
-            question.options.forEach(option => {
+        if (index < 0 || index >= questions.length) {
+            return;
+        }
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("POST", "/interface/forms/primary_support/load_ajax.php", false);
+        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhttp.send(`question_id=${questions[current_quiz].id}&encounter=${encounter}`);
+        let responseText = JSON.parse(xhttp.responseText);
+        let answer = (responseText && responseText.length > 0) ? responseText[0].answer: '';
+        let more = (responseText && responseText.length > 0) ? responseText[0].more: '';
+
+        if (questions[index].type === 'radio') {
+            $('.question').html(questions[index].question);
+            questions[index].options.forEach(option => {
                 ht += `
                     <div class="col-md-6">
-                        <input type="radio" name="${question.id}" value="${option}" ${question.answer===option?'checked':''}> ${option}
+                        <input type="radio" name="radio" value="${option}" ${answer===option?'checked':''}> ${option}
                     </div>
                 `;
             })
-        } else if (question.type === 'checkbox') {
-            question.options.forEach(option => {
+            $('.options').html(ht);
+        } else if (questions[index].type === 'checkbox') {
+            $('.question').html(questions[index].question);
+            questions[index].options.forEach(option => {
                 ht += `
                     <div class="col-md-6">
-                        <input type="checkbox" name="${option}" value="${option}" ${question.answer&&question.answer.split('|').includes(option)?'checked':''}> ${option}
+                        <input type="checkbox" name="${option}" value="${option}" ${answer.split('|').includes(option)?'checked':''}> ${option}
                     </div>
                 `;
             })
-        } else if (question.type === 'chart') {
+            $('.options').html(ht);
+        } else if (questions[index].type === 'chart') {
+            $('.question').html(questions[index].question);
             ht += `
                 <div class="col-md-6">
                     <div class="slidecontainer">
                         <span>0</span>
                         <span style="position: absolute; right: 10px;">100</span>
-                        <input type="range" min="0" max="100" value="${question.answer}" class="slider" id="myRange">
+                        <input type="range" min="0" max="100" value="${answer}" class="slider" id="myRange">
                     </div>
                     <p class="mt-15 bold">Risk Level: <span id="spanCaption">Low</span></p>
-                    <input type="text" id="myValue" value="${question.answer}" style="width: 100%; border-radius: 3px; border-color: rgb(169, 169, 169);">
+                    <input type="text" id="myValue" value="${answer}" style="width: 100%; border-radius: 3px; border-color: rgb(169, 169, 169);">
                 </div>
                 <div class="col-md-6">
                     <table class="table table-bordered level-table" style="width: 300px; margin: auto;">
@@ -370,56 +383,47 @@ $questions = array_map("generateOpt", $q_s);
                     </table>
                 </div>
             `;
-        } else if (question.type === 'final') {
-            let obj = question.answer && question.answer.length > 0?JSON.parse(question.answer):{};
+            $('.options').html(ht);
+            slider_init();
+        } else if (questions[index].type === 'final') {
+            $('.question').html(questions[index].question);
+            let obj = answer.length > 0?JSON.parse(answer):{};
             ht += `
                 <div class="col-md-12">
                     <input class="copy_session" type="checkbox" ${obj.copy_session_notes==='on'?'checked':''}> Copy Session Notes
                 </div>
                 <div class="col-md-6">
                     <label>Subjective</label>
-                    <textarea class="subjective name="" rows="4" style="width: 100%;">${obj.subjective?obj.subjective:''}</textarea>
+                    <textarea class="subjective name="" rows="4" style="width: 100%;">${obj.subjective}</textarea>
                 </div>
                 <div class="col-md-6">
                     <label>Assessment</label>
-                    <textarea class="assessment" name="" rows="4" style="width: 100%;">${obj.assessment?obj.assessment:''}</textarea>
+                    <textarea class="assessment" name="" rows="4" style="width: 100%;">${obj.assessment}</textarea>
                 </div>
                 <div class="col-md-6">
                     <label>Objective</label>
-                    <textarea class="objective" name="" rows="4" style="width: 100%;">${obj.objective?obj.objective:''}</textarea>
+                    <textarea class="objective" name="" rows="4" style="width: 100%;">${obj.objective}</textarea>
                 </div>
                 <div class="col-md-6">
                     <label>Plan</label>
-                    <textarea class="plan" name="" rows="4" style="width: 100%;">${obj.plan?obj.plan:''}</textarea>
+                    <textarea class="plan" name="" rows="4" style="width: 100%;">${obj.plan}</textarea>
                 </div>
                 <div class="col-md-12">
                     <input class="billable" type="checkbox" ${obj.billable==='on'?'checked':''}> Billable
                 </div>
             `;
+            $('.options').html(ht);
         }
+        document.getElementsByClassName('more-info')[0].value = more;
+        if (questions[index].type === 'final') {
+            $('.extra').hide();
+            $('.more-info').hide();
+        } else{
+            $('.extra').show();
+            $('.more-info').show();
+        }
+    }
 
-        return ht;
-    }
-    function get_quiz() {
-        var ht = '';
-        for (let index = 0; index < questions.length; index++) {
-            ht +=
-            `
-            <div class="quiz-wrapper quiz-${index}">
-                <h4 class="question">${index+1 + '. ' + questions[index].question}</h4>
-                <div class="row options">
-                    ${genOption(questions[index])}
-                </div>
-                <h5 class="extra" style="display: ${questions[index].type === 'final'?'none':''}">
-                    Add more information about this question:
-                </h5>
-                <textarea name="" rows="4" class="more-info" style="width: 100%; display: ${questions[index].type === 'final'?'none':''}"></textarea>
-            </div>
-            `
-        }
-        $('.q-wrapper').html(ht);
-        slider_init();
-    }
     function slider_init() {
         var slider = document.getElementById("myRange");
         var myValue = document.getElementById("myValue");
@@ -475,63 +479,92 @@ $questions = array_map("generateOpt", $q_s);
             }
         }
     }
-    function answerQuiz(questions) {
+
+    function answerQuiz(body) {
         var xhttp = new XMLHttpRequest();
-        xhttp.open("POST", "/interface/forms/primary_support/save_ajax.php", false);
+        xhttp.open("POST", "/interface/forms/primary_support/save_ajax.php", true);
         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xhttp.send(`encounter=${encounter}&questions=${JSON.stringify(questions)}&pid=<?php echo $supported_patient_id?>`);
-        alert('Answers are stored successfully.');
+        xhttp.send(`question_id=${body.question_id}&answer=${body.answer}&encounter=${encounter}&more=${body.more}`);
+        document.getElementsByClassName('more-info')[0].value = '';
     }
 
-    $('.end-button').on('click', function () {
-        for(let i = 0; i < questions.length; i++) {
-            if (questions[i].type === 'radio' && document.querySelector(`.quiz-${i} input:checked`)) {
-                questions[i].answer = document.querySelector(`.quiz-${i} input:checked`).value;
-                questions[i].more = document.querySelector(`.quiz-${i} .more-info`).value;
-            } else if (questions[i].type === 'checkbox') {
-                let checkboxes = document.querySelectorAll(`.quiz-${i} input:checked`)
-                let str = '';
-                if (checkboxes.length > 0) {
-                    checkboxes.forEach(v => {
-                        str += v.value + '|'
-                    })
-                    str = str.slice(0, -1);
-                }
-                questions[i].answer = str;
-                questions[i].more = document.querySelector(`.quiz-${i} .more-info`).value;
-            } else if (questions[i].type === 'chart') {
-                let myRange = document.getElementById('myRange');
-                if (myRange.value !== '') {
-                    questions[i].answer = myRange.value;
-                    questions[i].more = document.querySelector(`.quiz-${i} .more-info`).value;
-                }
-            } else if (questions[i].type === 'final') {
-                let str = JSON.stringify({
-                    "copy_session_notes": document.getElementsByClassName("copy_session")[0].value,
-                    "subjective": document.getElementsByClassName("subjective")[0].value,
-                    "assessment": document.getElementsByClassName("assessment")[0].value,
-                    "objective": document.getElementsByClassName("objective")[0].value,
-                    "plan": document.getElementsByClassName("plan")[0].value,
-                    "billable": document.getElementsByClassName("billable")[0].value
-                })
-                questions[i].answer = str;
-                questions[i].more = document.querySelector(`.quiz-${i} .more-info`).value;
+    $('.btn-next').on('click', function () {
+        if (questions[current_quiz].type === 'radio' && document.querySelector('input:checked')) {
+            let body = {
+                question_id: questions[current_quiz].id,
+                answer: document.querySelector('input:checked').value,
+                more: document.getElementsByClassName('more-info')[0].value
             }
+            answerQuiz(body);
+        // If no answer is selected when type is radio
+        } else if (questions[current_quiz].type === 'radio' && !document.querySelector('input:checked')) {
+            return;
+        } else if (questions[current_quiz].type === 'checkbox') {
+            let checkboxes = document.querySelectorAll('input:checked')
+            let str = '';
+            if (checkboxes.length > 0) {
+                checkboxes.forEach(v => {
+                    str += v.value + '|'
+                })
+                str = str.slice(0, -1);
+            }
+            let body = {
+                question_id: questions[current_quiz].id,
+                answer: str,
+                more: document.getElementsByClassName('more-info')[0].value
+            }
+            answerQuiz(body);
+        } else if (questions[current_quiz].type === 'chart') {
+            let myRange = document.getElementById('myRange');
+            if (myRange.value !== '') {
+                let body = {
+                question_id: questions[current_quiz].id,
+                answer: myRange.value,
+                more: document.getElementsByClassName('more-info')[0].value
+            }
+            answerQuiz(body);
+            }
+        } else if (questions[current_quiz].type === 'final') {
+            let str = JSON.stringify({
+                "copy_session_notes": document.getElementsByClassName("copy_session")[0].value,
+                "subjective": document.getElementsByClassName("subjective")[0].value,
+                "assessment": document.getElementsByClassName("assessment")[0].value,
+                "objective": document.getElementsByClassName("objective")[0].value,
+                "plan": document.getElementsByClassName("plan")[0].value,
+                "billable": document.getElementsByClassName("billable")[0].value
+            })
+            let body = {
+                question_id: questions[current_quiz].id,
+                answer: str,
+                more: ''
+            }
+            answerQuiz(body);
         }
-        answerQuiz(questions);
+        current_quiz++;
+        if (current_quiz >= questions.length) {
+            current_quiz = questions.length - 1;
+        }
+        gen_quiz_form(current_quiz);
     })
+    $('.btn-prev').on('click', function () {
+        current_quiz--;
+        if (current_quiz < 0) {
+            current_quiz = 0;
+        }
+        gen_quiz_form(current_quiz);
+    })
+
     $(document).ready(function(){
         tabbify();
-        get_quiz();
+        gen_quiz_form(current_quiz);
     })
 </script>
 
 
 <?php
-if ($patient_id === $pid) {
 // Update Encounter count of top page
 $result4 = sqlStatement("SELECT fe.encounter,fe.date,openemr_postcalendar_categories.pc_catname FROM form_encounter AS fe ".
-" left join openemr_postcalendar_categories on fe.pc_catid=openemr_postcalendar_categories.pc_catid  WHERE fe.pid = ? order by fe.date desc", array($pid));
+" left join openemr_postcalendar_categories on fe.pc_catid=openemr_postcalendar_categories.pc_catid  WHERE fe.pid = ? order by fe.date desc", array($patient_id));
 ?>
 <script language='JavaScript'>
     EncounterDateArray=new Array;
@@ -560,7 +593,4 @@ $result4 = sqlStatement("SELECT fe.encounter,fe.date,openemr_postcalendar_catego
     my_left_nav.setPatientEncounter(EncounterIdArray,EncounterDateArray,CalendarCategoryArray);
     top.restoreSession();
 </script>
-<?php
-}
-?>
 </html>
