@@ -26,6 +26,7 @@ CREATE TABLE `form_assessment_answers` (
 
 /* Primary Support Patient->Primary Support(should be Primary Support instead of Primary Support Patient for category) */
 DELETE FROM `openemr_postcalendar_categories` WHERE `pc_catname`='Primary Support';
+DELETE FROM `openemr_postcalendar_categories` WHERE `pc_catname`='Primary Support Patient';
 INSERT INTO `openemr_postcalendar_categories` (`pc_catid`,`pc_constant_id`,`pc_catname`,`pc_catcolor`,`pc_catdesc`,`pc_recurrtype`,`pc_duration`,`aco_spec`) VALUES (16,'primary_support','Primary Support','#CCFFFF','Primary Support','a:5:{s:17:"event_repeat_freq";s:1:"0";s:22:"event_repeat_freq_type";s:1:"0";s:19:"event_repeat_on_num";s:1:"1";s:19:"event_repeat_on_day";s:1:"0";s:20:"event_repeat_on_freq";s:1:"0";}',1800,'encounters|notes');
 
 /* create new table form_assessment_questions */
