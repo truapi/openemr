@@ -1,4 +1,3 @@
-
 DROP TABLE IF EXISTS `patient_support`;
 CREATE TABLE `patient_support` (
   `pid` int(11) NOT NULL,
@@ -11,7 +10,8 @@ DELETE FROM `registry` WHERE `name`='Assessment';
 INSERT INTO `registry` (`name`, `state`, `directory`, `id`, `sql_run`, `unpackaged`, `date`, `priority`, `category`, `nickname`, `patient_encounter`, `therapy_group_encounter`, `aco_spec`) VALUES ("Assessment", 1, "primary_support", 24, 1, 1, CURRENT_TIMESTAMP, 0, 'Clinical', '', 1, 0, 'encounters|notes');
 
 /* add pc_p_s_pid into openemr_postcalendar_events */
-ALTER TABLE `openemr_postcalendar_events` ADD COLUMN IF NOT EXISTS `pc_p_s_pid` VARCHAR(11);
+-- ALTER TABLE `openemr_postcalendar_events` ADD COLUMN IF NOT EXISTS `pc_p_s_pid` VARCHAR(11);
+ALTER TABLE `openemr_postcalendar_events` ADD COLUMN `pc_p_s_pid` VARCHAR(11);
 
 /* crate new table form_assessment_answers */
 DROP TABLE IF EXISTS `form_assessment_answers`;
@@ -49,7 +49,9 @@ INSERT INTO `form_assessment_questions` (`registry_id`, `question`, `type`, `opt
 INSERT INTO `form_assessment_questions` (`registry_id`, `question`, `type`, `options`) VALUES (24, "Impression Notes", 'final', '');
 
 /* add supported_patient field to form_encounter */
-ALTER TABLE `form_encounter` ADD COLUMN IF NOT EXISTS `supported_patient` INT;
+-- ALTER TABLE `form_encounter` ADD COLUMN IF NOT EXISTS `supported_patient` INT;
+ALTER TABLE `form_encounter` ADD COLUMN `supported_patient` INT;
+
 -- remove all form_encounter data
 DELETE FROM `form_encounter`;
 
