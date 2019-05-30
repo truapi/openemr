@@ -1,3 +1,22 @@
+-- DROP PROCEDURE IF EXISTS schema_change;
+
+-- DELIMITER ';;'
+-- CREATE PROCEDURE schema_change() BEGIN
+--  IF EXISTS (SELECT * FROM information_schema.columns WHERE table_name = 'test' AND column_name = 'test2') THEN
+--   ALTER TABLE test DROP COLUMN `test2`;
+--  END IF;
+--  /* add columns */
+--  ALTER TABLE test ADD COLUMN `test2` VARCHAR(255) NULL;
+-- END;;
+
+-- DELIMITER ';'
+-- CALL schema_change();
+
+-- DROP PROCEDURE IF EXISTS schema_change;
+
+ALTER TABLE `openemr_postcalendar_events` DROP COLUMN `pc_p_s_pid`;
+ALTER TABLE `form_encounter` DROP COLUMN `supported_patient`;
+
 DROP TABLE IF EXISTS `patient_support`;
 CREATE TABLE `patient_support` (
   `pid` int(11) NOT NULL,
@@ -49,12 +68,12 @@ INSERT INTO `form_assessment_questions` (`registry_id`, `question`, `type`, `opt
 INSERT INTO `form_assessment_questions` (`registry_id`, `question`, `type`, `options`) VALUES (24, "Do you suspect alcohol or drug abuse with this consent?", 'radio', 'Yes|No|Maybe/Not Sure');
 INSERT INTO `form_assessment_questions` (`registry_id`, `question`, `type`, `options`) VALUES (24, "Impression Notes", 'final', '');
 
+-- remove all form_encounter data
+DELETE FROM `form_encounter`;
+
 /* add supported_patient field to form_encounter */
 -- ALTER TABLE `form_encounter` ADD COLUMN IF NOT EXISTS `supported_patient` INT;
 ALTER TABLE `form_encounter` ADD COLUMN `supported_patient` INT;
-
--- remove all form_encounter data
-DELETE FROM `form_encounter`;
 
 /* Create new table patient_meta to store recent assessment value and others */
 DROP TABLE IF EXISTS `patient_meta`;
@@ -62,7 +81,3 @@ CREATE TABLE `patient_meta` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `pid` int(11),
   `name` VARCHAR(50),
-  `encounter` int(11),
-  `value` VARCHAR(50),
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
