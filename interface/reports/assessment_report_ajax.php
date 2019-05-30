@@ -1,4 +1,5 @@
 <?php
+use function GuzzleHttp\json_encode;
 
 require_once("../globals.php");
 require_once("../../library/patient.inc");
@@ -6,6 +7,14 @@ require_once("../../library/encounter.inc");
 
 $pid = (isset($_REQUEST['pid'])) ? $_REQUEST['pid'] : '';
 $ps_id = (isset($_REQUEST['ps_id'])) ? $_REQUEST['ps_id'] : '';
+
+if (isset($_REQUEST['state'])) {
+    $enc = $_REQUEST['enc'];
+    setEncounterStatus($enc);
+    echo 1;
+    return;
+}
+
 if (!isset($_REQUEST['ps_id'])) {
     $patients = getPrimarySupportsOfPatient($pid);
     echo json_encode($patients);

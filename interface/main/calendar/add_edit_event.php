@@ -917,7 +917,13 @@ if (empty($collectthis)) {
 
         $eventstartdate = $row['pc_eventDate']; // for repeating event stuff - JRM Oct-08
         $userid = $row['pc_aid'];
-        $patientid = $row['pc_pid'];
+        // When category is primary support, the supported patient is pc_p_s_pid field.
+        if ($row['pc_catid'] == 16) {
+            $patientid = $row['pc_p_s_pid'];
+            $pc_ps_pid = $row['pc_pid'];
+        } else {
+            $patientid = $row['pc_pid'];
+        }
         $groupid = $row['pc_gid'];
         $starttimeh = substr($row['pc_startTime'], 0, 2) + 0;
         $starttimem = substr($row['pc_startTime'], 3, 2);
@@ -1627,7 +1633,7 @@ if ($_GET['prov']==true) {
                 if ($patientid) {
                     foreach ($priamry_patients as $patient) {
                         echo "<option value=\"".attr($patient["id"])."\" ";
-                        echo ">" . text(attr($patient["fname"]) ." ". attr($patient["lname"]));
+                        echo ($pc_ps_pid==$patient["id"]?'selected':'').">" . text(attr($patient["fname"]) ." ". attr($patient["lname"]));
                         echo "</option>\n";
                     }
                 }

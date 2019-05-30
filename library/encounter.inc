@@ -72,7 +72,14 @@ function getEncountersForAssessment($pid, $ps_id) {
         echo "MySQL connect failed";
     };
     $table = 'form_encounter';
-    $query = "select * from $table where pc_catid = 16 AND pid = $ps_id AND supported_patient = $pid";
+    $query = "select * from $table where pc_catid = 16";
+    if ($ps_id > 0) {
+        $query = $query." AND pid = $ps_id";
+    }
+    if ($pid > 0) {
+        $query = $query." AND supported_patient = $pid";
+    }
+    // $query = "select * from $table where pc_catid = 16 AND pid = $ps_id AND supported_patient = $pid";
     $result = mysqli_query($dbh, $query);
     while($encounter = mysqli_fetch_array($result)) {
         if ($encounter) {
@@ -80,4 +87,37 @@ function getEncountersForAssessment($pid, $ps_id) {
         }
     }
     return $res;
+}
+
+function getEncounterStatus($enc) {
+    global $sqlconf;
+    $host = $sqlconf["host"];
+    $port = $sqlconf["port"];
+    $login = $sqlconf["login"];
+    $pass = $sqlconf["pass"];
+    $dbase = $sqlconf["dbase"];
+    $dbh = mysqli_connect("$host", "$login", "$pass", $dbase, $port);
+    if (!$dbh) {
+        echo "MySQL connect failed";
+    };
+    $table = 'form_encounter_review';
+    $query = "select * from $table where encounter = $enc";
+
+    $result = mysqli_query($dbh, $query);
+    $res = array();
+    while($review = mysqli_fetch_array($result)) {
+        if ($review) {
+            $res[] = $review;
+        }
+    }
+    if (sizeof($res) == 1) {
+        return $res[0]['status'];
+    } else {
+        return 0;
+    }
+}
+
+function setEncounterStatus($enc) {
+    sqlInsert("INSERT INTO form_encounter_review (encounter, status) VALUES(?,?)", array($enc, 1));
+    return;
 }
