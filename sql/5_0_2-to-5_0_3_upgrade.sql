@@ -81,3 +81,17 @@ CREATE TABLE `patient_meta` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `pid` int(11),
   `name` VARCHAR(50),
+  `encounter` int(11),
+  `value` VARCHAR(50),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
+
+/* Create new table form_encounter_review to store Assessment review state */
+DROP TABLE IF EXISTS `form_encounter_review`;
+
+CREATE TABLE `form_encounter_review` (
+  `encounter` int(11) NOT NULL,
+  `status` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`encounter`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
