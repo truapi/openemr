@@ -371,8 +371,11 @@ function InsertEvent($args, $from = 'general')
         }
     }
 
-    $form_pid = empty($args['form_pid']) ? '' : $args['form_pid'];
-    $form_ps_patient = empty($args['form_ps_patient']) ? '' : $args['form_ps_patient'];
+    // $form_pid = empty($args['form_pid']) ? '' : $args['form_pid'];
+    $form_pid = ($args['form_category']==16)?(empty($args['form_ps_patient']) ? '' : $args['form_ps_patient']):(empty($args['form_pid']) ? '' : $args['form_pid']);
+    // $form_ps_patient = empty($args['form_ps_patient']) ? '' : $args['form_ps_patient'];
+    $form_ps_patient = ($args['form_category']==16)?(empty($args['form_pid']) ? '' : $args['form_pid']):(empty($args['form_ps_patient']) ? '' : $args['form_ps_patient']);
+
     $form_room = empty($args['form_room']) ? '' : $args['form_room'];
     $form_gid = empty($args['form_gid']) ? '' : $args['form_gid'];
     ;

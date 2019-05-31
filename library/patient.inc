@@ -827,7 +827,7 @@ function getPatientName($pid)
         return "";
     }
 
-    $patientName =  $patientData[0]['lname'] . ", " . $patientData[0]['fname'];
+    $patientName =  $patientData[0]['fname'] . ", " . $patientData[0]['lname'];
     return $patientName;
 }
 
