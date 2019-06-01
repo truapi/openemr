@@ -104,7 +104,7 @@ $supported_patient_id = isset($_GET['supported_patient_id']) ? $_GET['supported_
             width: 100%;
             height: 15px;
             border-radius: 5px;
-            background: var(--low-bg-color);
+            /* background: var(--low-bg-color); */
             outline: none;
             opacity: 0.7;
             -webkit-transition: .2s;
@@ -161,7 +161,7 @@ $supported_patient_id = isset($_GET['supported_patient_id']) ? $_GET['supported_
         #spanCaption {
             color: white;
             padding: 5px;
-            background: var(--low-bg-color);
+            /* background: var(--low-bg-color); */
         }
         .end-button {
             position: absolute;
@@ -309,9 +309,38 @@ $questions = array_map("generateOpt", $q_s);
     <?php } ?>
 </body>
 <script language="Javascript">
+    function getRiskText($value) {
+        if ($value > 90) {
+            return 'Highest';
+        } else if ($value > 60) {
+            return 'High';
+        } else if ($value > 30) {
+            return 'Elevated';
+        } else if ($value > 10) {
+            return 'Moderate';
+        } else if ($value > 0) {
+            return 'Low';
+        };
+    }
+
+    function getRiskCss($value) {
+        if ($value > 90) {
+            return 'highest';
+        } else if ($value > 60) {
+            return 'high';
+        } else if ($value > 30) {
+            return 'elevated';
+        } else if ($value > 10) {
+            return 'moderate';
+        } else if ($value > 0) {
+            return 'low';
+        };
+    }
+
     var current_quiz = 0;
     var questions = <?php echo json_encode($questions) ?>;
     var encounter = <?php echo $encounter; ?>;
+
     function genOption(question) {
         var ht = '';
         if (question.type === 'radio') {
@@ -336,9 +365,9 @@ $questions = array_map("generateOpt", $q_s);
                     <div class="slidecontainer">
                         <span>0</span>
                         <span style="position: absolute; right: 10px;">100</span>
-                        <input type="range" min="0" max="100" value="${question.answer}" class="slider" id="myRange">
+                        <input type="range" min="0" max="100" value="${question.answer}" class="slider ${getRiskCss(question.answer)}" id="myRange">
                     </div>
-                    <p class="mt-15 bold">Risk Level: <span id="spanCaption">Low</span></p>
+                    <p class="mt-15 bold">Risk Level: <span id="spanCaption" class="${getRiskCss(question.answer)}">${getRiskText(question.answer)}</span></p>
                     <input type="text" id="myValue" value="${question.answer}" style="width: 100%; border-radius: 3px; border-color: rgb(169, 169, 169);">
                 </div>
                 <div class="col-md-6">
@@ -475,15 +504,21 @@ $questions = array_map("generateOpt", $q_s);
             }
         }
     }
+    var is_saving = false;
     function answerQuiz(questions) {
         var xhttp = new XMLHttpRequest();
         xhttp.open("POST", "/interface/forms/primary_support/save_ajax.php", false);
         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         xhttp.send(`encounter=${encounter}&questions=${JSON.stringify(questions)}&pid=<?php echo $supported_patient_id?>`);
         alert('Answers are stored successfully.');
+        is_saving = true;
     }
 
     $('.end-button').on('click', function () {
+        if (is_saving) {
+            return;
+        }
+        is_saving = true;
         for(let i = 0; i < questions.length; i++) {
             if (questions[i].type === 'radio' && document.querySelector(`.quiz-${i} input:checked`)) {
                 questions[i].answer = document.querySelector(`.quiz-${i} input:checked`).value;

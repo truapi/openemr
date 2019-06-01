@@ -24,7 +24,13 @@ if ($questions) {
         if (strlen($q->answer) > 0) {
             saveAssessmentAnswer($q->id, $q->answer, $encounter, $q->more);
             if ($q->type === 'chart') {
-                insertPatientMetaData($pid,'Risk',$q->answer, $encounter);
+                $risk = getPatientMetaData('Risk',$pid, $encounter);
+                if ($risk['value']) {
+                    updatePatientMetaData($pid,'Risk',$q->answer, $encounter);
+                } else {
+                    insertPatientMetaData($pid,'Risk',$q->answer, $encounter);
+                }
+
             }
         }
         // saveAssessmentAnswer($question_id, $answer, $encounter, $more);

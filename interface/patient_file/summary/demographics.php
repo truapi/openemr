@@ -611,7 +611,6 @@ while ($gfrow = sqlFetchArray($gfres)) {
       return;
     }
     <?php if (isset($_GET['set_pid'])) {?>
-
     parent.left_nav.setPatient(
       <?php echo "'" . addslashes($result['fname']) . " " . addslashes($result['lname']) .
     "'," . addslashes($pid) . ",'" . addslashes($result['pubpid']) .
