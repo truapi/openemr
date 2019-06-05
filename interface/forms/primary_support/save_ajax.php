@@ -21,7 +21,7 @@ $more = isset($_POST["more"]) ? $_POST["more"]: '';
 $questions = isset($_POST['questions']) ? json_decode($_POST['questions']): null;
 if ($questions) {
     foreach($questions as $q) {
-        if (strlen($q->answer) > 0) {
+        if (strlen($q->answer) > 0 || strlen($q->more) > 0) {
             saveAssessmentAnswer($q->id, $q->answer, $encounter, $q->more);
             if ($q->type === 'chart') {
                 $risk = getPatientMetaData('Risk',$pid, $encounter);
@@ -33,7 +33,6 @@ if ($questions) {
 
             }
         }
-        // saveAssessmentAnswer($question_id, $answer, $encounter, $more);
     }
 }
 echo "done";

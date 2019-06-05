@@ -19,6 +19,7 @@ use OpenEMR\Core\Header;
 
 $patient_id = isset($_GET['patient_id']) ? $_GET['patient_id'] : "";
 $supported_patient_id = isset($_GET['supported_patient_id']) ? $_GET['supported_patient_id'] : "";
+$registry = isset($_GET['registry']) ? $_GET['registry'] : "";
 ?>
 <html>
 <head>
@@ -191,7 +192,7 @@ $supported_patient = getPatientData($supported_patient_id);
 if (isset($_GET['patient_id']) || !isset($encounter)) {
     $encounter = createEncounter($patient_id, $supported_patient_id);
 }
-$q_s = getAssessmentQuestions($encounter);
+$q_s = getAssessmentQuestions($encounter, $registry);
 function generateOpt($q) {
     return array(
         'id' => $q['id'],
@@ -339,6 +340,9 @@ $questions = array_map("generateOpt", $q_s);
 
     var current_quiz = 0;
     var questions = <?php echo json_encode($questions) ?>;
+    if (!questions) {
+        questions = [];
+    }
     var encounter = <?php echo $encounter; ?>;
 
     function genOption(question) {
@@ -442,7 +446,7 @@ $questions = array_map("generateOpt", $q_s);
                 <h5 class="extra" style="display: ${questions[index].type === 'final'?'none':''}">
                     Add more information about this question:
                 </h5>
-                <textarea name="" rows="4" class="more-info" style="width: 100%; display: ${questions[index].type === 'final'?'none':''}"></textarea>
+                <textarea name="" rows="4" class="more-info" style="width: 100%; display: ${questions[index].type === 'final'?'none':''}">${questions[index].more?questions[index].more:''}</textarea>
             </div>
             `
         }
@@ -453,6 +457,9 @@ $questions = array_map("generateOpt", $q_s);
         var slider = document.getElementById("myRange");
         var myValue = document.getElementById("myValue");
         var spanCaption = document.getElementById('spanCaption');
+        if (!slider) {
+            return;
+        }
         myValue.value = slider.value;
 
         slider.oninput = function() {
@@ -511,7 +518,7 @@ $questions = array_map("generateOpt", $q_s);
         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         xhttp.send(`encounter=${encounter}&questions=${JSON.stringify(questions)}&pid=<?php echo $supported_patient_id?>`);
         alert('Answers are stored successfully.');
-        is_saving = true;
+        is_saving = false;
     }
 
     $('.end-button').on('click', function () {
@@ -550,6 +557,8 @@ $questions = array_map("generateOpt", $q_s);
                     "billable": document.getElementsByClassName("billable")[0].value
                 })
                 questions[i].answer = str;
+                questions[i].more = document.querySelector(`.quiz-${i} .more-info`).value;
+            } else if (questions[i].type === 'text') {
                 questions[i].more = document.querySelector(`.quiz-${i} .more-info`).value;
             }
         }

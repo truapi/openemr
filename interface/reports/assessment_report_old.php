@@ -221,91 +221,110 @@ $state = isset($_POST['state']) ? $_POST['state']: 0;
 </div>
 <div id='pnotes' style="padding: 30px;">
 <?php
+function getRiskText($value) {
+    if ($value > 90) {
+        return 'Highest';
+    } else if ($value > 60) {
+        return 'High';
+    } else if ($value > 30) {
+        return 'Elevated';
+    } else if ($value > 10) {
+        return 'Moderate';
+    } else if ($value > 0) {
+        return 'Low';
+    };
+}
+
+function getRiskCss($value) {
+    if ($value > 90) {
+        return 'highest';
+    } else if ($value > 60) {
+        return 'high';
+    } else if ($value > 30) {
+        return 'elevated';
+    } else if ($value > 10) {
+        return 'moderate';
+    } else if ($value > 0) {
+        return 'low';
+    };
+}
 
 for ($x = 0; $x < sizeof($encounters); $x++) {
     $enc = $encounters[$x]['encounter'];
-    if (($encounter > 0 && $enc != $encounter)) {
+
+    $enc_state = getEncounterStatus($enc);
+    if (($encounter > 0 && $enc != $encounter) || ($state != $enc_state)) {
         continue;
     }
+
     $g_encounter_query =
     "SELECT form_encounter.*, pdata.fname as pdata_fname, pdata.lname as pdata_lname, supported_data.fname as supported_data_fname," .
-    " supported_data.lname as supported_data_lname FROM form_encounter " .
+    " supported_data.lname as supported_data_lname, pdata_meta.value as pdata_value FROM form_encounter " .
     " INNER JOIN patient_data as pdata ON pdata.id = form_encounter.pid " .
     " INNER JOIN patient_data as supported_data ON supported_data.id = form_encounter.supported_patient " .
-    " WHERE form_encounter.pc_catid = 16 AND form_encounter.encounter = ?";
+    " INNER JOIN patient_meta as pdata_meta ON (pdata_meta.pid = pdata.id AND pdata_meta.encounter = form_encounter.encounter) " .
+    " OR (pdata_meta.pid = supported_data.id AND pdata_meta.encounter = form_encounter.encounter)" .
+    " WHERE form_encounter.pc_catid = 16 AND form_encounter.encounter = ?" .
+    " ORDER BY encounter DESC limit 5";
     $enc_data = sqlQuery($g_encounter_query, array($enc));
     if (!$enc_data) {
         continue;
     }
+    echo "<p style='margin-left:-10px;'>".explode(" ", $enc_data['date'])[0].": <a class='EncounterLink' data-pid=".$enc_data['pid']." data-encounter=".$enc_data['encounter'].">Primary Support Assessment</a> by ".$enc_data['pdata_fname'].", ".$enc_data['pdata_lname']." for ".$enc_data['supported_data_fname'].", ".$enc_data['supported_data_lname'].
+        " is <span class='".getRiskCss($enc_data['pdata_value'])."'> ". getRiskText($enc_data['pdata_value']) ." </span></p>";
 
     $ps_query = sqlStatement("SELECT * FROM registry WHERE directory='primary_support'");
     while ($ps_item = sqlFetchArray($ps_query)) {
-        $e_query =
-            "SELECT form_assessment_questions.id, form_assessment_questions.type, form_assessment_questions.question, form_assessment_answers.answer, registry.name as registry_name, registry.id as registry" .
-            " FROM form_assessment_questions" .
-            " INNER JOIN registry ON form_assessment_questions.registry_id = registry.id AND registry.id = ?" .
-            " INNER JOIN form_assessment_answers ON form_assessment_questions.id = form_assessment_answers.question_id".
-            " INNER JOIN form_encounter ON form_assessment_answers.encounter = form_encounter.encounter";
-        if ($patient > 0) {
-            $e_query .= " AND form_encounter.supported_patient = $patient";
-        }
-        if ($primary_patient > 0) {
-            $e_query .= " AND form_encounter.pid = $primary_patient";
-        }
-        $e_query .= " AND form_encounter.encounter = ?" .
-        " ORDER BY form_encounter.encounter, form_assessment_questions.id";
-        $e_questions_query= sqlStatement($e_query, array($ps_item['id'], $enc));
-
-        $e_question_array = array();
-        while ($e_question = sqlFetchArray($e_questions_query)) {
-            $e_question_array[] = $e_question;
-        }
-
-        if (sizeof($e_question_array) == 0) {
-            continue;
-        }
-
-        $registry = $e_question_array[0]['registry'];
-        $enc_state = getEncounterStatus($enc, $registry);
-        if ($state != $enc_state) {
-            continue;
-        }
-
-        echo "<p style='margin-left:-10px;'>".explode(" ", $enc_data['date'])[0].": <a class='EncounterLink' data-pid=".$enc_data['pid']." data-encounter=".$enc_data['encounter']." data-desc='".$e_question_array[0]['registry_name']."' data-registry='".$registry."'>".$e_question_array[0]['registry_name']."</a> by ".$enc_data['pdata_fname'].", ".$enc_data['pdata_lname']." for ".$enc_data['supported_data_fname'].", ".$enc_data['supported_data_lname']."</p>";
+        if ($ps_item['name'] === 'Assessment') {
+            $e_query =
+                "SELECT form_assessment_questions.id, form_assessment_questions.type, form_assessment_questions.question, form_assessment_answers.answer FROM form_assessment_questions" .
+                " INNER JOIN registry ON form_assessment_questions.registry_id = registry.id AND registry.id = ?" .
+                " INNER JOIN form_assessment_answers ON form_assessment_questions.id = form_assessment_answers.question_id".
+                " INNER JOIN form_encounter ON form_assessment_answers.encounter = form_encounter.encounter";
+            if ($patient > 0) {
+                $e_query .= " AND form_encounter.supported_patient = $patient";
+            }
+            if ($primary_patient > 0) {
+                $e_query .= " AND form_encounter.pid = $primary_patient";
+            }
+            $e_query .= " AND form_encounter.encounter = ?" .
+            " ORDER BY form_encounter.encounter, form_assessment_questions.id";
+            $e_questions_query= sqlStatement($e_query, array($ps_item['id'], $enc));
 ?>
-    <table border='0' cellpadding="1" width="100%">
-        <tbody>
-        <tr style="border-bottom:2px solid #000;" class="text" align='left'>
-            <td valign='top' style="width: 80%;">Question</td>
-            <td valign='top'>Answer</td>
-        </tr>
-
+        <table border='0' cellpadding="1" width="100%">
+            <tbody>
+            <tr style="border-bottom:2px solid #000;" class="text" align='left'>
+                <td valign='top' style="width: 80%;">Question</td>
+                <td valign='top'>Answer</td>
+            </tr>
         <?php
-        for ($i = 0; $i < sizeof($e_question_array); $i++) {
-            $e_question = $e_question_array[$i];
-            if ($e_question['type'] === 'final') {
-                continue;
+            while ($e_question = sqlFetchArray($e_questions_query)) {
+        ?>
+            <?php
+                if ($e_question['type'] === 'final') {
+                    continue;
+                }
+            ?>
+            <tr class="noterow">
+                <td valign='top' style="width: 80%;"><?=$e_question['question']?></td>
+                <td valign='top'><?=$e_question['answer']?></td>
+            </tr>
+        <?php
             }
         ?>
-        <tr class="noterow">
-            <td valign='top' style="width: 80%;"><?=$e_question['question']?></td>
-            <td valign='top'><?=$e_question['answer']?></td>
-        </tr>
-        <?php
-        }
-        ?>
-        </tbody>
-    </table>
-    <div style="margin-top: 20px; height: 30px;">
-        <?php
-        if ($state == 0) {
-        ?>
-        <button class="approve" data-enc="<?php echo $enc_data['encounter']; ?>"  data-registry="<?php echo $registry; ?>" style="float: right;">Approve</button>
-        <?php
-        }
-        ?>
-    </div>
+            </tbody>
+        </table>
+        <div style="margin-top: 20px;">
+            <?php
+            if ($state == 0) {
+            ?>
+            <button class="approve" data-enc="<?php echo $enc_data['encounter']; ?>" style="float: right;">Approve</button>
+            <?php
+            }
+            ?>
+        </div>
 <?php
+        }
     }
 }
 ?>
@@ -386,19 +405,16 @@ for ($x = 0; $x < sizeof($encounters); $x++) {
     $('.EncounterLink').click(function() {
         let encId = $(this).data('encounter');
         let pId = $(this).data('pid');
-        let desc = $(this).data('desc');
-        let registry = $(this).data('registry');
-        var url='patient_file/encounter/encounter_top.php?set_encounter='+encId+'&pid='+pId+'&formname=primary_support&formdesc='+desc+'&registry='+registry;
+        var url='patient_file/encounter/encounter_top.php?set_encounter='+encId+'&pid='+pId+'&formname=primary_support&formdesc=Assessment';
         top.restoreSession();
         parent.left_nav.loadFrame('enc', 'enc', url);
     })
     $('.approve').click(function() {
         let enc = $(this).data('enc');
-        let registry = $(this).data('registry');
         var xhttp = new XMLHttpRequest();
         xhttp.open("POST", "assessment_report_ajax.php", false);
         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xhttp.send(`enc=${enc}&state=1&registry=${registry}`);
+        xhttp.send(`enc=${enc}&state=1`);
         let response = xhttp.responseText;
         if (response == 1) {
             $(this).hide();

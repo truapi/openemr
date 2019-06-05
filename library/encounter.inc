@@ -89,7 +89,7 @@ function getEncountersForAssessment($pid, $ps_id) {
     return $res;
 }
 
-function getEncounterStatus($enc) {
+function getEncounterStatus($enc, $registry) {
     global $sqlconf;
     $host = $sqlconf["host"];
     $port = $sqlconf["port"];
@@ -101,7 +101,7 @@ function getEncounterStatus($enc) {
         echo "MySQL connect failed";
     };
     $table = 'form_encounter_review';
-    $query = "select * from $table where encounter = $enc";
+    $query = "select * from $table where encounter = $enc AND registry = $registry";
 
     $result = mysqli_query($dbh, $query);
     $res = array();
@@ -117,7 +117,7 @@ function getEncounterStatus($enc) {
     }
 }
 
-function setEncounterStatus($enc) {
-    sqlInsert("INSERT INTO form_encounter_review (encounter, status) VALUES(?,?)", array($enc, 1));
+function setEncounterStatus($enc, $registry) {
+    sqlInsert("INSERT INTO form_encounter_review (encounter, status, registry) VALUES(?,?,?)", array($enc, 1, $registry));
     return;
 }

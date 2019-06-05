@@ -17,6 +17,5 @@ if (substr($_GET["formname"], 0, 3) === 'LBF') {
 
   // ensure the path variable has no illegal characters
     check_file_dir_name($_GET["formname"]);
-
     include_once("$incdir/forms/" . $_GET["formname"] . "/new.php");
 }

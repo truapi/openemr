@@ -592,7 +592,7 @@ if (!empty($reg)) {
                 $DivId++;
             }
             $StringEcho .= "<tr><td style='border-top: 1px solid #000000;padding:0px;'><a onclick=\"openNewForm('" .
-                $rootdir . "/patient_file/encounter/load_form.php?formname=" . urlencode($entry['directory']) . "&encounter=" .$encounter .
+                $rootdir . "/patient_file/encounter/load_form.php?formname=" . urlencode($entry['directory']) . "&encounter=" .$encounter . "&registry=" .$entry['id'] .
                 "', '" . addslashes(xl_form_title($nickname)) . "')\" href='JavaScript:void(0);'>" .
                 text(xl_form_title($nickname)) . "</a></td></tr>";
         }

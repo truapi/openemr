@@ -72,7 +72,7 @@
                         <span data-bind="text: pname()"></span>
                         (<span data-bind="text: pubpid"></span>)
                         <span  data-bind="text: risk()>90?'Highest':(risk()>60&&risk<=90)?'High':(risk()>30&&risk()<=60)?'Elevated':(risk()>10&&risk()<=30)?'Moderate':(risk()<10 && risk())?'Low':'None',
-                            css: {highest: risk()>90, high: risk()>60&&risk()<=90, elevated: risk()>30&&risk()<=60, moderate: risk()>10&&risk<=30, low: risk()<10&&risk(), none: !risk()} "></span>
+                            css: {highest: risk()>90, high: risk()>60&&risk()<=90, elevated: risk()>30&&risk()<=60, moderate: risk()>10&&risk()<=30, low: risk()<10&&risk(), none: !risk()} "></span>
                     </a>
                 <!-- /ko -->
                 <!-- ko ifnot: patient -->
