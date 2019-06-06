@@ -1553,33 +1553,6 @@ while ($gfrow = sqlFetchArray($gfres)) {
 
 
   <?php
-    function getRiskText($value) {
-        if ($value > 90) {
-            return 'Highest';
-        } else if ($value > 60) {
-            return 'High';
-        } else if ($value > 30) {
-            return 'Elevated';
-        } else if ($value > 10) {
-            return 'Moderate';
-        } else if ($value > 0) {
-            return 'Low';
-        };
-    }
-
-    function getRiskCss($value) {
-        if ($value > 90) {
-            return 'highest';
-        } else if ($value > 60) {
-            return 'high';
-        } else if ($value > 30) {
-            return 'elevated';
-        } else if ($value > 10) {
-            return 'moderate';
-        } else if ($value > 0) {
-            return 'low';
-        };
-    }
   // Here we display Primary Support results such as Assessment
     $ps_query = sqlStatement("SELECT * FROM registry WHERE directory='primary_support'");
     while ($ps_item = sqlFetchArray($ps_query)) {
@@ -1588,7 +1561,7 @@ while ($gfrow = sqlFetchArray($gfres)) {
         <td width='650px'>
           <?php // vitals expand collapse widget
             $widgetTitle = $ps_item['name'];
-            $widgetLabel = str_replace(" ","_",$ps_item['name']);;
+            $widgetLabel = $ps_item['name'];
             $widgetButtonLabel = $ps_item['name'];
             $widgetButtonLink = "";
             $widgetButtonClass = "";
@@ -1609,19 +1582,47 @@ while ($gfrow = sqlFetchArray($gfres)) {
                 $widgetAuth,
                 $fixedWidth
             );
+
             $g_encounter_query =
                 "SELECT form_encounter.*, pdata.fname as pdata_fname, pdata.lname as pdata_lname, supported_data.fname as supported_data_fname," .
-                " supported_data.lname as supported_data_lname FROM form_encounter " .
+                " supported_data.lname as supported_data_lname, pdata_meta.value as pdata_value FROM form_encounter " .
                 " INNER JOIN patient_data as pdata ON pdata.id = form_encounter.pid " .
                 " INNER JOIN patient_data as supported_data ON supported_data.id = form_encounter.supported_patient " .
-                " INNER JOIN form_assessment_answers ON form_assessment_answers.encounter = form_encounter.encounter " .
-                " INNER JOIN form_assessment_questions ON form_assessment_questions.id = form_assessment_answers.question_id " .
-                " INNER JOIN registry ON registry.id = form_assessment_questions.registry_id " .
-                " WHERE (form_encounter.supported_patient = ? OR form_encounter.pid = ?) AND form_encounter.pc_catid = 16 AND registry.id = ?" .
-                " GROUP BY form_encounter.encounter " .
+                " INNER JOIN patient_meta as pdata_meta ON (pdata_meta.pid = pdata.id AND pdata_meta.encounter = form_encounter.encounter) " .
+                " OR (pdata_meta.pid = supported_data.id AND pdata_meta.encounter = form_encounter.encounter)" .
+                " WHERE (form_encounter.supported_patient = ? OR form_encounter.pid = ?) AND form_encounter.pc_catid = 16 " .
                 " ORDER BY encounter DESC limit 5";
+            /* $my_encounter = sqlQuery($g_encounter_query, array($pid, $pid)); */
+            function getRiskText($value) {
+                if ($value > 90) {
+                    return 'Highest';
+                } else if ($value > 60) {
+                    return 'High';
+                } else if ($value > 30) {
+                    return 'Elevated';
+                } else if ($value > 10) {
+                    return 'Moderate';
+                } else if ($value > 0) {
+                    return 'Low';
+                };
+            }
 
-            $rez = sqlStatement($g_encounter_query, array($pid, $pid, $ps_item['id']));
+            function getRiskCss($value) {
+                if ($value > 90) {
+                    return 'highest';
+                } else if ($value > 60) {
+                    return 'high';
+                } else if ($value > 30) {
+                    return 'elevated';
+                } else if ($value > 10) {
+                    return 'moderate';
+                } else if ($value > 0) {
+                    return 'low';
+                };
+            }
+
+            $rez = sqlStatement($g_encounter_query, array($pid, $pid));
+            }
             ?>
             <br />
             <?php
@@ -1630,10 +1631,13 @@ while ($gfrow = sqlFetchArray($gfres)) {
             ?>
             <div style='margin-left:10px; margin-bottom: 5px;' class='text'>
                 <?php
+                /* echo $my_encounter; */
                 if ($my_encounter && $my_encounter['pid'] == $pid) {
-                    echo explode(" ", $my_encounter['date'])[0].": <a class='EncounterLink' data-pid=".$my_encounter['pid']." data-encounter=".$my_encounter['encounter']." data-desc='".$ps_item['name']."' data-registry='".$ps_item['id']."'>".$ps_item['name']."</a> by ".$my_encounter['pdata_fname'].", ".$my_encounter['pdata_lname']." for ".$my_encounter['supported_data_fname'].", ".$my_encounter['supported_data_lname'];
+                    echo explode(" ", $my_encounter['date'])[0].": <a class='EncounterLink' data-pid=".$my_encounter['pid']." data-encounter=".$my_encounter['encounter'].">Primary Support Assessment</a> by ".$my_encounter['pdata_fname'].", ".$my_encounter['pdata_lname']." for ".$my_encounter['supported_data_fname'].", ".$my_encounter['supported_data_lname'].
+                        " is <span class='".getRiskCss($my_encounter['pdata_value'])."'> ". getRiskText($my_encounter['pdata_value']) ." </span>";
                 } else if ($my_encounter && $my_encounter['supported_patient'] == $pid) {
-                    echo explode(" ", $my_encounter['date'])[0].": <a class='EncounterLink' data-pid=".$my_encounter['pid']." data-encounter=".$my_encounter['encounter']." data-desc='".$ps_item['name']."' data-registry='".$ps_item['id']."'>".$ps_item['name']."</a> for ".$my_encounter['supported_data_fname'].", ".$my_encounter['supported_data_lname']." by ".$my_encounter['pdata_fname'].", ".$my_encounter['pdata_lname'];
+                    echo explode(" ", $my_encounter['date'])[0].": <a class='EncounterLink' data-pid=".$my_encounter['pid']." data-encounter=".$my_encounter['encounter'].">Primary Support Assessment</a> for ".$my_encounter['supported_data_fname'].", ".$my_encounter['supported_data_lname']." by ".$my_encounter['pdata_fname'].", ".$my_encounter['pdata_lname'].
+                        " is <span class='".getRiskCss($my_encounter['pdata_value'])."'> ". getRiskText($my_encounter['pdata_value']) ." </span>";
                 }
                 ?>
             </div>
@@ -1641,11 +1645,9 @@ while ($gfrow = sqlFetchArray($gfres)) {
             }
             ?>
             <br />
+            </div>
         </td>
       </tr>
-      <?php
-    }
-      ?>
   </table>
 
   </div>
@@ -2183,13 +2185,12 @@ if ($track_is_registered) {
   ];
   checkSkipConditions();
   $('.EncounterLink').click(function() {
-    let encId = $(this).data('encounter');
-    let pId = $(this).data('pid');
-    let desc = $(this).data('desc');
-    let registry = $(this).data('registry');
-    var url='patient_file/encounter/encounter_top.php?set_encounter='+encId+'&pid='+pId+'&formname=primary_support&formdesc='+desc+'&registry='+registry;
-    top.restoreSession();
-    parent.left_nav.loadFrame('enc', 'enc', url);
+        let encId = $(this).data('encounter');
+        let pId = $(this).data('pid');
+        var url='patient_file/encounter/encounter_top.php?set_encounter='+encId+'&pid='+pId+'&formname=primary_support&formdesc=Assessment';
+        console.log(url);
+        top.restoreSession();
+        parent.left_nav.loadFrame('enc', 'enc', url);
 
   })
   </script>

@@ -2,7 +2,7 @@
 include_once("../../globals.php");
 include_once("$srcdir/forms.inc");
 
-function getAssessmentQuestions($encounter) {
+function getAssessmentQuestions($encounter, $registry) {
     global $sqlconf;
     $host = $sqlconf["host"];
     $port = $sqlconf["port"];
@@ -17,6 +17,7 @@ function getAssessmentQuestions($encounter) {
         "SELECT form_assessment_questions.*, form_assessment_answers.answer, form_assessment_answers.more ".
         "FROM form_assessment_questions ".
         "LEFT JOIN form_assessment_answers ON form_assessment_questions.id=form_assessment_answers.question_id AND form_assessment_answers.encounter=".$encounter.
+        " WHERE form_assessment_questions.registry_id=".$registry.
         " ORDER BY form_assessment_questions.id";
 
     $result = mysqli_query($dbh, $query);

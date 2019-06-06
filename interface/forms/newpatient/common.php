@@ -113,6 +113,10 @@ require_once($GLOBALS['srcdir'] . "/validation/validation_script.js.php"); ?>
      var submit = submitme(1, event, 'new-encounter-form', collectvalidation);
      if (submit) {
        top.restoreSession();
+       // This is validation for primary support category
+       if ($('#pc_catid').val() == 16 && $('#supported_patient').val() == '') {
+           return;
+       }
        $('#new-encounter-form').submit();
      }
    }
@@ -396,8 +400,8 @@ echo ">" . xlt('None'). "</option>\n";
     <tr id="ps-wrapper" style="display: none">
         <td class='bold' nowrap><?php echo xlt('Patient'); ?>:</td>
         <td colspan="6">
-            <select class="form-control" name="supported_patient">
-                <option value='_blank'>-- <?php echo xlt('Select One'); ?> --</option>
+            <select class="form-control" id="supported_patient" name="supported_patient" required>
+                <option value=''>-- <?php echo xlt('Select One'); ?> --</option>
                 <?php
                 // $patients = getPrimaryOfSupportPatient($pid);
                 foreach ($patients as $patient) {
