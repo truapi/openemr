@@ -243,7 +243,7 @@ insert  into `form_assessment_questions`(`id`,`registry_id`,`question`,`type`,`o
 
 (106,27,'Do you participate in some form of recovery for yourself? This would be things like AI-Anon, Nar-Anon, Families Anonymous, Co-Anon, or threapy?','radio','Yes|No, but I\'m open to suggestions|Yes, with a sponsor|No, and I am not open to suggestions'),
 
-(107,28,'How would you assess the case\'s risk level?','checkbox','Risk Level Slider'),
+(107,28,'How would you assess the case\'s risk level?','chart','Risk Level Slider'),
 
 (108,28,'Do you suspect the Primary Support is making excuses or covering up for the Case?','radio','Yes|No|Maybe/Not sure'),
 
@@ -251,7 +251,7 @@ insert  into `form_assessment_questions`(`id`,`registry_id`,`question`,`type`,`o
 
 (110,28,'Do you suspect alcohol or drug abuse with this consent?','radio','Yes|No|Maybe/Not sure'),
 
-(111,29,'How would you assess the case\'s risk level?','checkbox','Risk Level Slider'),
+(111,29,'How would you assess the case\'s risk level?','chart','Risk Level Slider'),
 
 (112,29,'When I called the Case:','radio','they answered|it went to voicemail and I did not leave a message|it went to voicemail and I left a message|they called MAP|we used video'),
 
