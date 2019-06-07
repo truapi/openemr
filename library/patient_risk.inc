@@ -18,7 +18,7 @@ function insertPatientMetaData($pid, $name, $risk, $encounter) {
 
 function updatePatientMetaData($pid, $name, $risk, $encounter) {
     sqlStatement("UPDATE patient_meta SET value = " . $risk . " WHERE pid = " . $pid . " AND name = '" .$name . "' AND encounter = " .$encounter);
-    return sqlQuery($sql);
+    // return sqlQuery($sql);
 }
 
 ?>
