@@ -11,7 +11,8 @@ $ps_id = (isset($_REQUEST['ps_id'])) ? $_REQUEST['ps_id'] : '';
 if (isset($_REQUEST['state'])) {
     $enc = $_REQUEST['enc'];
     $registry = $_REQUEST['registry'];
-    setEncounterStatus($enc, $registry);
+    $state = $_REQUEST['state'];
+    setEncounterStatus($enc, $registry, $state);
     echo 1;
     return;
 }

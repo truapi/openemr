@@ -1,6 +1,5 @@
 DELETE FROM `registry` WHERE `directory`='primary_support';
 /* add assessment to registry to display inside 'Clinical' menu */
-insert into `registry` (`name`, `state`, `directory`, `id`, `sql_run`, `unpackaged`, `date`, `priority`, `category`, `nickname`, `patient_encounter`, `therapy_group_encounter`, `aco_spec`) values('Test Assessment','1','primary_support','24','1','1','2019-05-22 21:51:27','0','Assessments','','1','0','encounters|notes');
 insert into `registry` (`name`, `state`, `directory`, `id`, `sql_run`, `unpackaged`, `date`, `priority`, `category`, `nickname`, `patient_encounter`, `therapy_group_encounter`, `aco_spec`) values('WHOQOL Bref','1','primary_support','25','1','1','2019-05-22 21:51:27','0','Assessments','','1','0','encounters|notes');
 insert into `registry` (`name`, `state`, `directory`, `id`, `sql_run`, `unpackaged`, `date`, `priority`, `category`, `nickname`, `patient_encounter`, `therapy_group_encounter`, `aco_spec`) values('Regular Session','1','primary_support','26','1','1','2019-05-22 21:51:27','0','Assessments','','1','0','encounters|notes');
 insert into `registry` (`name`, `state`, `directory`, `id`, `sql_run`, `unpackaged`, `date`, `priority`, `category`, `nickname`, `patient_encounter`, `therapy_group_encounter`, `aco_spec`) values('Primary Support Questions','1','primary_support','27','1','1','2019-05-22 21:51:27','0','Assessments','','1','0','encounters|notes');
@@ -23,24 +22,6 @@ CREATE TABLE `form_assessment_questions` (
 /*Data for the table `form_assessment_questions` */
 
 insert  into `form_assessment_questions`(`id`,`registry_id`,`question`,`type`,`options`) values
-
-(10,24,'Do you participate in some form of recovery for yourself? This would be thinking like Al-Anon, Families Anonymous, Co-Anon, or therapy?','radio','Yes|Yes with a sponsor|No, but I am open to suggestions|No, and I am not open to suggestions'),
-
-(11,24,'Have you noticed any positive or negative behavioral changes in Virginia Benji?','radio','Positive|Negative|No Change'),
-
-(12,24,'Are your feelings of well-being and happiness determined by whether your loved one is doing well or not?','radio','Yes|No|Maybe/Not Sure'),
-
-(13,24,'How would you assess the Case\'s Risk Level?','chart',''),
-
-(14,24,'Do you suspect the consent is making excuses, or covering up for the Case?','radio','Yes|No|Maybe/Not Sure'),
-
-(15,24,'Do you suspect delusion or denial with this consent?','radio','Yes|No|Maybe/Not Sure'),
-
-(16,24,'How would you describe the family system?','checkbox','Healthy|Enabling|Severe Enabling|Codependent|Enmeshed|Hypervigilant/Policiing|In Denial|Not Supportive|Not Involved/Estranged'),
-
-(17,24,'Do you suspect alcohol or drug abuse with this consent?','radio','Yes|No|Maybe/Not Sure'),
-
-(18,24,'Impression Notes','final',''),
 
 (19,25,'How would you rate your quality of life?','radio','Good|Neither poor nor good|Poor|Very Good|Very Poor'),
 
@@ -311,11 +292,33 @@ insert  into `form_assessment_questions`(`id`,`registry_id`,`question`,`type`,`o
 (152,30,'Do you feel pressure to succeed? If yes, how much pressure are you currently feeling?','radio','No, none|Yes moderate|Yes, high|Yes, extreme');
 
 /* Create new table form_encounter_review to store Assessment review state */
-DROP TABLE IF EXISTS `form_encounter_review`;
+/* Create new table patient_meta to store recent assessment value and others */
+DROP TABLE IF EXISTS `patient_meta`;
+CREATE TABLE `patient_meta` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `pid` int(11),
+  `name` VARCHAR(50),
+  `encounter` int(11),
+  `value` VARCHAR(50),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
 
+/* Create new table form_encounter_review to store Assessment review state */
+DROP TABLE IF EXISTS `form_encounter_review`;
 CREATE TABLE `form_encounter_review` (
   `encounter` int(11) NOT NULL,
   `status` tinyint(1) DEFAULT '0',
   `registry` int(11) NOT NULL,
   PRIMARY KEY (`encounter`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/* crate new table form_assessment_answers */
+DROP TABLE IF EXISTS `form_assessment_answers`;
+CREATE TABLE `form_assessment_answers` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `question_id` int(11) DEFAULT NULL,
+  `answer` longtext DEFAULT NULL,
+  `encounter` int(11) DEFAULT NULL,
+  `more` longtext,
+  KEY `id` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

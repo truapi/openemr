@@ -117,7 +117,32 @@ function getEncounterStatus($enc, $registry) {
     }
 }
 
-function setEncounterStatus($enc, $registry) {
-    sqlInsert("INSERT INTO form_encounter_review (encounter, status, registry) VALUES(?,?,?)", array($enc, 1, $registry));
+function setEncounterStatus($enc, $registry, $state) {
+    global $sqlconf;
+    $host = $sqlconf["host"];
+    $port = $sqlconf["port"];
+    $login = $sqlconf["login"];
+    $pass = $sqlconf["pass"];
+    $dbase = $sqlconf["dbase"];
+    $dbh = mysqli_connect("$host", "$login", "$pass", $dbase, $port);
+    if (!$dbh) {
+        echo "MySQL connect failed";
+    };
+
+    $table = 'form_encounter_review';
+    $query = "select * from $table where encounter = $enc AND registry = $registry";
+
+    $result = mysqli_query($dbh, $query);
+    $res = array();
+    while($review = mysqli_fetch_array($result)) {
+        if ($review) {
+            $res[] = $review;
+        }
+    }
+    if (sizeof($res) == 1) {
+        sqlQuery("update form_encounter_review set status = $state where encounter = $enc and registry = $registry");
+    } else {
+        sqlInsert("INSERT INTO form_encounter_review (encounter, status, registry) VALUES(?,?,?)", array($enc, $state, $registry));
+    }
     return;
 }
