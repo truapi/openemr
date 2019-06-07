@@ -302,6 +302,10 @@ for ($x = 0; $x < sizeof($encounters); $x++) {
         ?>
         <button class="approve" data-enc="<?php echo $enc_data['encounter']; ?>"  data-registry="<?php echo $registry; ?>" style="float: right;">Approve</button>
         <?php
+        } else if ($state == 1) {
+        ?>
+        <button class="disapprove" data-enc="<?php echo $enc_data['encounter']; ?>"  data-registry="<?php echo $registry; ?>" style="float: right;">Disapprove</button>
+        <?php
         }
         ?>
     </div>
@@ -399,6 +403,18 @@ for ($x = 0; $x < sizeof($encounters); $x++) {
         xhttp.open("POST", "assessment_report_ajax.php", false);
         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         xhttp.send(`enc=${enc}&state=1&registry=${registry}`);
+        let response = xhttp.responseText;
+        if (response == 1) {
+            $(this).hide();
+        }
+    })
+    $('.disapprove').click(function() {
+        let enc = $(this).data('enc');
+        let registry = $(this).data('registry');
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("POST", "assessment_report_ajax.php", false);
+        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhttp.send(`enc=${enc}&state=0&registry=${registry}`);
         let response = xhttp.responseText;
         if (response == 1) {
             $(this).hide();

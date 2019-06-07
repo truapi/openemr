@@ -627,7 +627,7 @@ while ($gfrow = sqlFetchArray($gfres)) {
         " left join openemr_postcalendar_categories on fe.pc_catid=openemr_postcalendar_categories.pc_catid  WHERE fe.pid = ? order by fe.date desc", array($pid));
     if (sqlNumRows($result4) > 0) {
         while ($rowresult4 = sqlFetchArray($result4)) {
-                    ?>
+    ?>
             EncounterIdArray[Count] = '<?php echo addslashes($rowresult4['encounter']); ?>';
             EncounterDateArray[Count] =
             '<?php echo addslashes(oeFormatShortDate(date("Y-m-d", strtotime($rowresult4['date'])))); ?>';
@@ -1627,13 +1627,31 @@ while ($gfrow = sqlFetchArray($gfres)) {
             <?php
             for ($iter=0; $row=sqlFetchArray($rez); $iter++) {
                 $my_encounter=$row;
+
+                $encounter_meta_query =
+                    "SELECT form_assessment_answers.answer FROM form_assessment_answers " .
+                    "INNER JOIN form_assessment_questions ON form_assessment_answers.question_id = form_assessment_questions.id AND form_assessment_questions.type='chart'" .
+                    "INNER JOIN registry ON registry.id = form_assessment_questions.registry_id " .
+                    "WHERE form_assessment_answers.encounter = ? AND registry.id = ?";
+                $meta_data = sqlFetchArray(sqlStatement($encounter_meta_query, array($my_encounter['encounter'], $ps_item['id'])));
+                $p_risk = $meta_data['answer'];
             ?>
             <div style='margin-left:10px; margin-bottom: 5px;' class='text'>
                 <?php
                 if ($my_encounter && $my_encounter['pid'] == $pid) {
-                    echo explode(" ", $my_encounter['date'])[0].": <a class='EncounterLink' data-pid=".$my_encounter['pid']." data-encounter=".$my_encounter['encounter']." data-desc='".$ps_item['name']."' data-registry='".$ps_item['id']."'>".$ps_item['name']."</a> by ".$my_encounter['pdata_fname'].", ".$my_encounter['pdata_lname']." for ".$my_encounter['supported_data_fname'].", ".$my_encounter['supported_data_lname'];
+                    if ($p_risk) {
+                        echo explode(" ", $my_encounter['date'])[0].": <a class='EncounterLink' data-pid=".$my_encounter['pid']." data-encounter=".$my_encounter['encounter']." data-desc='".$ps_item['name']."' data-registry='".$ps_item['id']."'>".$ps_item['name']."</a> by ".$my_encounter['pdata_fname'].", ".$my_encounter['pdata_lname']." for ".$my_encounter['supported_data_fname'].", ".$my_encounter['supported_data_lname'].
+                            " is <span class='".getRiskCss($p_risk)."'> ". getRiskText($p_risk) ." </span>";
+                    } else {
+                        echo explode(" ", $my_encounter['date'])[0].": <a class='EncounterLink' data-pid=".$my_encounter['pid']." data-encounter=".$my_encounter['encounter']." data-desc='".$ps_item['name']."' data-registry='".$ps_item['id']."'>".$ps_item['name']."</a> by ".$my_encounter['pdata_fname'].", ".$my_encounter['pdata_lname']." for ".$my_encounter['supported_data_fname'].", ".$my_encounter['supported_data_lname'];
+                    }
                 } else if ($my_encounter && $my_encounter['supported_patient'] == $pid) {
-                    echo explode(" ", $my_encounter['date'])[0].": <a class='EncounterLink' data-pid=".$my_encounter['pid']." data-encounter=".$my_encounter['encounter']." data-desc='".$ps_item['name']."' data-registry='".$ps_item['id']."'>".$ps_item['name']."</a> for ".$my_encounter['supported_data_fname'].", ".$my_encounter['supported_data_lname']." by ".$my_encounter['pdata_fname'].", ".$my_encounter['pdata_lname'];
+                    if ($p_risk) {
+                        echo explode(" ", $my_encounter['date'])[0].": <a class='EncounterLink' data-pid=".$my_encounter['pid']." data-encounter=".$my_encounter['encounter']." data-desc='".$ps_item['name']."' data-registry='".$ps_item['id']."'>".$ps_item['name']."</a> for ".$my_encounter['supported_data_fname'].", ".$my_encounter['supported_data_lname']." by ".$my_encounter['pdata_fname'].", ".$my_encounter['pdata_lname'].
+                            " is <span class='".getRiskCss($p_risk)."'> ". getRiskText($p_risk) ." </span>";
+                    } else {
+                        echo explode(" ", $my_encounter['date'])[0].": <a class='EncounterLink' data-pid=".$my_encounter['pid']." data-encounter=".$my_encounter['encounter']." data-desc='".$ps_item['name']."' data-registry='".$ps_item['id']."'>".$ps_item['name']."</a> for ".$my_encounter['supported_data_fname'].", ".$my_encounter['supported_data_lname']." by ".$my_encounter['pdata_fname'].", ".$my_encounter['pdata_lname'];
+                    }
                 }
                 ?>
             </div>

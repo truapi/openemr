@@ -321,7 +321,9 @@ $questions = array_map("generateOpt", $q_s);
             return 'Moderate';
         } else if ($value > 0) {
             return 'Low';
-        };
+        } else {
+            return 'Elevated';
+        }
     }
 
     function getRiskCss($value) {
@@ -335,7 +337,9 @@ $questions = array_map("generateOpt", $q_s);
             return 'moderate';
         } else if ($value > 0) {
             return 'low';
-        };
+        } else {
+            return 'elevated';
+        }
     }
 
     var current_quiz = 0;
@@ -484,6 +488,10 @@ $questions = array_map("generateOpt", $q_s);
                 this.style.background = 'var(--low-bg-color)';
                 spanCaption.style.background = 'var(--low-bg-color)';
                 spanCaption.innerHTML = 'Low';
+            } else {
+                this.style.background = 'var(--elevated-bg-color)';
+                spanCaption.style.background = 'var(--elevated-bg-color)';
+                spanCaption.innerHTML = 'Elevated';
             }
         }
         myValue.onchange = function () {
@@ -508,6 +516,10 @@ $questions = array_map("generateOpt", $q_s);
                 slider.style.background = 'var(--low-bg-color)';
                 spanCaption.style.background = 'var(--low-bg-color)';
                 spanCaption.innerHTML = 'Low';
+            } else {
+                slider.style.background = 'var(--elevated-bg-color)';
+                spanCaption.style.background = 'var(--elevated-bg-color)';
+                spanCaption.innerHTML = 'Elevated';
             }
         }
     }
