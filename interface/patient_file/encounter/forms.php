@@ -535,10 +535,19 @@ if (isset($pid) && isset($encounter)) {
     "pid = '$pid' AND encounter = '$encounter' LIMIT 1");
     if ($tmp['supported_patient'] == 0) {
         foreach ($reg as $key => $entry) {
-            if ($entry['directory'] === 'primary_support') {
+            if ($entry['directory'] === 'primary_support_question' ||
+                $entry['directory'] === 'primary_support_impression_question' || $entry['directory'] === 'patient_impression_question') {
                 unset($reg[$key]);
             }
         }
+    } else if ($tmp['supported_patient'] == 1) {
+        foreach ($reg as $key => $entry) {
+            if ($entry['directory'] === 'patient_question' ||
+                $entry['directory'] === 'patient_impression_question' || $entry['directory'] === 'primary_support_impression_question') {
+                unset($reg[$key]);
+            }
+        }
+
     }
 }
 
