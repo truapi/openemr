@@ -44,6 +44,7 @@ CREATE TABLE `form_assessment_answers` (
   `answer` longtext DEFAULT NULL,
   `encounter` int(11) DEFAULT NULL,
   `more` longtext,
+  `parent_reg` int(11) DEFAULT NULL,
   KEY `id` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

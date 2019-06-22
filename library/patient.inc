@@ -11,6 +11,7 @@
 
 
 use OpenEMR\Services\FacilityService;
+use function GuzzleHttp\json_encode;
 
 $facilityService = new FacilityService();
 
@@ -1178,18 +1179,16 @@ function getPrimarySupportsOfPatient($patient_id = null) {
         echo "MySQL connect failed";
     }
     $query  =
-        "SELECT patient_data.*, patient_support.pid FROM patient_data " .
+        "SELECT patient_data.id, patient_data.fname,patient_data.lname,patient_support.pid FROM patient_data " .
         "INNER JOIN patient_support ON patient_data.id = patient_support.sid ";
 
     if ($patient_id) {
-        $query = $query . "WHERE patient_support.pid = '$patient_id'";
+        $query = $query . "WHERE patient_support.pid = $patient_id";
     }
-
     $result = mysqli_query($dbh, $query);
-    while($patient_data = mysqli_fetch_array($result)) {
-        if ($patient_data) {
-            $res[] = $patient_data;
-        }
+    $res = array();
+    while($row = mysqli_fetch_array($result)) {
+        $res[] = $row;
     }
     return $res;
 }

@@ -14,12 +14,21 @@
 require_once "../../globals.php";
 require_once("$srcdir/assessment.inc");
 require_once("$srcdir/encounter.inc");
+require_once("$srcdir/registry.inc");
 
 use OpenEMR\Core\Header;
 
 $patient_id = isset($_GET['patient_id']) ? $_GET['patient_id'] : "";
 $supported_patient_id = isset($_GET['supported_patient_id']) ? $_GET['supported_patient_id'] : "";
-$registry = isset($_GET['registry']) ? $_GET['registry'] : "";
+$registry = isset($_GET['registry']) ? $_GET['registry'] : null;
+/**
+ * If registry is empty, this means it is called from Primary Support page
+ * Then ingest Primary Support Question registry
+ */
+$r = getPrimarySupportRegistry();
+if ($registry == null) {
+    $registry = $r['id'];
+}
 ?>
 <html>
 <head>
@@ -568,12 +577,11 @@ $impression_questions = array_map("generateOpt", $i_q_s);
         is_saving = false;
     }
 
-    var is_saving = false;
     function answerImpressionQuiz(questions) {
         var xhttp = new XMLHttpRequest();
         xhttp.open("POST", "/interface/forms/primary_support_question/save_ajax.php", false);
         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xhttp.send(`encounter=${encounter}&questions=${JSON.stringify(questions)}&pid=<?php echo $supported_patient_id?>`);
+        xhttp.send(`encounter=${encounter}&questions=${JSON.stringify(questions)}&pid=<?php echo $supported_patient_id?>&registry=<?php echo $registry?>`);
         alert('Answers are stored successfully.');
         is_saving = false;
     }

@@ -72,12 +72,16 @@ function getEncountersForAssessment($pid, $ps_id) {
         echo "MySQL connect failed";
     };
     $table = 'form_encounter';
-    $query = "select * from $table where pc_catid = 16";
-    if ($ps_id > 0) {
-        $query = $query." AND pid = $ps_id";
-    }
-    if ($pid > 0) {
-        $query = $query." AND supported_patient = $pid";
+    $query = "select * from $table";
+    if ($ps_id > 0 && $pid > 0) {
+        $query .= " where pc_catid = 16";
+        $query .= " AND pid = $ps_id";
+        $query .= " AND supported_patient = $pid";
+    } else if ($ps_id == 0 && $pid > 0) {
+        $query .= " WHERE (pid = $pid AND supported_patient = 0) OR (supported_patient = $pid AND pc_catid = 16)";
+    } else if ($ps_id > 0 && $pid == 0) {
+        $query .= " where pc_catid = 16";
+        $query .= " AND pid = $ps_id AND supported_patient <> 0";
     }
     // $query = "select * from $table where pc_catid = 16 AND pid = $ps_id AND supported_patient = $pid";
     $result = mysqli_query($dbh, $query);

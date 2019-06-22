@@ -121,7 +121,7 @@ $state = isset($_POST['state']) ? $_POST['state']: 0;
                                     $names = array();
                                     $ids = array();
                                     echo "   <select name='patient' class='form-control' id='patient_select' required>\n";
-                                    echo "    <option value=''>-- " . xlt('Please Select Patient') . " --\n";
+                                    echo "    <option value='0'>-- " . xlt('Please Select Patient') . " --\n";
                                     while ($row = sqlFetchArray($res)) {
                                         $name = $row['lname'];
                                         if ($name && $row['fname']) {
@@ -221,6 +221,43 @@ $state = isset($_POST['state']) ? $_POST['state']: 0;
 </div>
 <div id='pnotes' style="padding: 30px;">
 <?php
+function getPatientImpressionQA($enc, $registry) {
+    $e_query =
+        "SELECT form_assessment_questions.id, form_assessment_questions.type, form_assessment_questions.question, form_assessment_answers.answer" .
+        " FROM form_assessment_questions" .
+        " INNER JOIN form_assessment_answers ON form_assessment_questions.id = form_assessment_answers.question_id".
+        " INNER JOIN form_encounter ON form_assessment_answers.encounter = form_encounter.encounter" .
+        " AND form_encounter.encounter = ?" .
+        " WHERE form_assessment_answers.parent_reg = ?" .
+        " ORDER BY form_encounter.encounter, form_assessment_questions.id";
+
+    $e_questions_query= sqlStatement($e_query, array($enc, $registry));
+
+    $e_question_array = array();
+    while ($e_question = sqlFetchArray($e_questions_query)) {
+        $e_question_array[] = $e_question;
+    }
+    return $e_question_array;
+}
+
+function getPrimarySupportImpressionQA($enc, $registry) {
+    $e_query =
+        "SELECT form_assessment_questions.id, form_assessment_questions.type, form_assessment_questions.question, form_assessment_answers.answer" .
+        " FROM form_assessment_questions" .
+        " INNER JOIN form_assessment_answers ON form_assessment_questions.id = form_assessment_answers.question_id".
+        " INNER JOIN form_encounter ON form_assessment_answers.encounter = form_encounter.encounter" .
+        " AND form_encounter.encounter = ?" .
+        " WHERE form_assessment_answers.parent_reg = ?" .
+        " ORDER BY form_encounter.encounter, form_assessment_questions.id";
+
+    $e_questions_query= sqlStatement($e_query, array($enc, $registry));
+
+    $e_question_array = array();
+    while ($e_question = sqlFetchArray($e_questions_query)) {
+        $e_question_array[] = $e_question;
+    }
+    return $e_question_array;
+}
 
 for ($x = 0; $x < sizeof($encounters); $x++) {
     $enc = $encounters[$x]['encounter'];
@@ -230,15 +267,15 @@ for ($x = 0; $x < sizeof($encounters); $x++) {
     $g_encounter_query =
     "SELECT form_encounter.*, pdata.fname as pdata_fname, pdata.lname as pdata_lname, supported_data.fname as supported_data_fname," .
     " supported_data.lname as supported_data_lname FROM form_encounter " .
-    " INNER JOIN patient_data as pdata ON pdata.id = form_encounter.pid " .
-    " INNER JOIN patient_data as supported_data ON supported_data.id = form_encounter.supported_patient " .
-    " WHERE form_encounter.pc_catid = 16 AND form_encounter.encounter = ?";
+    " LEFT JOIN patient_data as pdata ON pdata.id = form_encounter.pid " .
+    " LEFT JOIN patient_data as supported_data ON supported_data.id = form_encounter.supported_patient " .
+    " WHERE form_encounter.encounter = ?";
     $enc_data = sqlQuery($g_encounter_query, array($enc));
     if (!$enc_data) {
         continue;
     }
 
-    $ps_query = sqlStatement("SELECT * FROM registry WHERE directory='primary_support'");
+    $ps_query = sqlStatement("SELECT * FROM registry WHERE directory='primary_support_question' OR directory='patient_question'");
     while ($ps_item = sqlFetchArray($ps_query)) {
         $e_query =
             "SELECT form_assessment_questions.id, form_assessment_questions.type, form_assessment_questions.question, form_assessment_answers.answer, registry.name as registry_name, registry.id as registry" .
@@ -246,12 +283,17 @@ for ($x = 0; $x < sizeof($encounters); $x++) {
             " INNER JOIN registry ON form_assessment_questions.registry_id = registry.id AND registry.id = ?" .
             " INNER JOIN form_assessment_answers ON form_assessment_questions.id = form_assessment_answers.question_id".
             " INNER JOIN form_encounter ON form_assessment_answers.encounter = form_encounter.encounter";
-        if ($patient > 0) {
+        if ($patient > 0 && $primary_patient > 0) {
             $e_query .= " AND form_encounter.supported_patient = $patient";
-        }
-        if ($primary_patient > 0) {
+            $e_query .= " AND form_encounter.pid = $primary_patient";
+        } else if ($patient > 0 && $primary_patient == 0) {
+            // $e_query .= " AND form_encounter.supported_patient = 0";
+            $e_query .= " AND (form_encounter.pid = $patient OR form_encounter.supported_patient = $patient)";
+        } else if ($patient == 0 && $primary_patient > 0) {
+            $e_query .= " AND form_encounter.supported_patient <> 0";
             $e_query .= " AND form_encounter.pid = $primary_patient";
         }
+
         $e_query .= " AND form_encounter.encounter = ?" .
         " ORDER BY form_encounter.encounter, form_assessment_questions.id";
         $e_questions_query= sqlStatement($e_query, array($ps_item['id'], $enc));
@@ -271,7 +313,12 @@ for ($x = 0; $x < sizeof($encounters); $x++) {
             continue;
         }
 
-        echo "<p style='margin-left:-10px;'>".explode(" ", $enc_data['date'])[0].": <a class='EncounterLink' data-pid=".$enc_data['pid']." data-encounter=".$enc_data['encounter']." data-desc='".$e_question_array[0]['registry_name']."' data-registry='".$registry."'>".$e_question_array[0]['registry_name']."</a> by ".$enc_data['pdata_fname'].", ".$enc_data['pdata_lname']." for ".$enc_data['supported_data_fname'].", ".$enc_data['supported_data_lname']."</p>";
+        if ($enc_data['supported_patient'] == 0) {
+            echo "<p style='margin-left:-10px;'>".explode(" ", $enc_data['date'])[0].": <a class='EncounterLink' data-pid=".$enc_data['pid']." data-encounter=".$enc_data['encounter']." data-desc='".$e_question_array[0]['registry_name']."' data-registry='".$registry."'>".$e_question_array[0]['registry_name']."</a> for ".$enc_data['pdata_fname'].", ".$enc_data['pdata_lname']."</p>";
+        } else {
+            echo "<p style='margin-left:-10px;'>".explode(" ", $enc_data['date'])[0].": <a class='EncounterLink' data-pid=".$enc_data['pid']." data-encounter=".$enc_data['encounter']." data-desc='".$e_question_array[0]['registry_name']."' data-registry='".$registry."'>".$e_question_array[0]['registry_name']."</a> by ".$enc_data['pdata_fname'].", ".$enc_data['pdata_lname']." for ".$enc_data['supported_data_fname'].", ".$enc_data['supported_data_lname']."</p>";
+        }
+
 ?>
     <table border='0' cellpadding="1" width="100%">
         <tbody>
@@ -296,6 +343,64 @@ for ($x = 0; $x < sizeof($encounters); $x++) {
         ?>
         </tbody>
     </table>
+    <?php
+    if ($enc_data['supported_patient'] == 0) {
+        $p_im_qa = getPatientImpressionQA($enc, $registry);
+    ?>
+    <table border='0' cellpadding="1" width="100%" style="margin-top: 15px">
+        <tbody>
+        <tr style="border-bottom:2px solid #000;" class="text" align='left'>
+            <td valign='top' style="width: 80%;">Patient Impression Questions</td>
+            <td valign='top'>Answer</td>
+        </tr>
+
+        <?php
+        for ($i = 0; $i < sizeof($p_im_qa); $i++) {
+            $e_question = $p_im_qa[$i];
+            if ($e_question['type'] === 'final') {
+                continue;
+            }
+        ?>
+        <tr class="noterow">
+            <td valign='top' style="width: 80%;"><?=$e_question['question']?></td>
+            <td valign='top'><?=$e_question['answer']?></td>
+        </tr>
+        <?php
+        }
+        ?>
+        </tbody>
+    </table>
+    <?php
+    } else {
+        $p_s_im_qa = getPrimarySupportImpressionQA($enc, $registry);
+    ?>
+    <table border='0' cellpadding="1" width="100%" style="margin-top: 15px">
+        <tbody>
+        <tr style="border-bottom:2px solid #000;" class="text" align='left'>
+            <td valign='top' style="width: 80%;">Primary Support Impression Questions</td>
+            <td valign='top'>Answer</td>
+        </tr>
+
+        <?php
+        for ($i = 0; $i < sizeof($p_s_im_qa); $i++) {
+            $e_question = $p_s_im_qa[$i];
+            if ($e_question['type'] === 'final') {
+                continue;
+            }
+        ?>
+        <tr class="noterow">
+            <td valign='top' style="width: 80%;"><?=$e_question['question']?></td>
+            <td valign='top'><?=$e_question['answer']?></td>
+        </tr>
+        <?php
+        }
+        ?>
+        </tbody>
+    </table>
+    <?php
+    }
+    ?>
+
     <div style="margin-top: 20px; height: 30px;">
         <?php
         if ($state == 0) {
@@ -392,7 +497,12 @@ for ($x = 0; $x < sizeof($encounters); $x++) {
         let pId = $(this).data('pid');
         let desc = $(this).data('desc');
         let registry = $(this).data('registry');
-        var url='patient_file/encounter/encounter_top.php?set_encounter='+encId+'&pid='+pId+'&formname=primary_support&formdesc='+desc+'&registry='+registry;
+        let url;
+        if (desc == 'Primary Support Questions') {
+            url='patient_file/encounter/encounter_top.php?set_encounter='+encId+'&pid='+pId+'&formname=primary_support_question&formdesc='+desc+'&registry='+registry;
+        } else {
+            url='patient_file/encounter/encounter_top.php?set_encounter='+encId+'&pid='+pId+'&formname=patient_question&formdesc='+desc+'&registry='+registry;
+        }
         top.restoreSession();
         parent.left_nav.loadFrame('enc', 'enc', url);
     })

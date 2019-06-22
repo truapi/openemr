@@ -24,3 +24,4 @@ UPDATE `openemr_postcalendar_categories` SET `pc_active` = 0 WHERE `pc_catid` = 
 UPDATE `registry` SET `state` = 0 WHERE `category` = 'Clinical' ;
 UPDATE `registry` SET `state` = 0 WHERE `category` = 'Administrative' AND `name` <> 'New Encounter Form' ;
 
+ALTER TABLE `form_assessment_answers` ADD COLUMN `parent_reg` INT;

@@ -193,6 +193,7 @@ if (isset($_GET['patient_id']) || !isset($encounter)) {
     $encounter = createEncounter($patient_id, $supported_patient_id);
 }
 $q_s = getAssessmentQuestions($encounter, $registry);
+$i_q_s = getPatientImpressionQuestions($encounter, $registry);
 function generateOpt($q) {
     return array(
         'id' => $q['id'],
@@ -205,6 +206,7 @@ function generateOpt($q) {
 }
 
 $questions = array_map("generateOpt", $q_s);
+$impression_questions = array_map("generateOpt", $i_q_s);
 ?>
 
 <body class='body_top'>
@@ -283,11 +285,11 @@ $questions = array_map("generateOpt", $q_s);
     </table>
 
     <ul class="tabNav">
-        <li class="current">
+        <li class="patient current">
             <a href="#">Questions</a>
         </li>
-        <li class="">
-            <a href="">Use Event</a>
+        <li class="impression">
+            <a href="">Patient Impression Questions</a>
         </li>
     </ul>
     <div class="tabContainer">
@@ -302,8 +304,16 @@ $questions = array_map("generateOpt", $q_s);
                 </div>
             </div>
         </div>
-        <div class="tab event">
-            Use Event
+        <div class="tab impression">
+            <div class="row">
+                <div class="col-md-8 q-impression-wrapper">
+
+                </div>
+                <div class="col-md-4">
+                    <h5 class="text-center"><b>Session Notes</b></h5>
+                    <textarea name="" rows="10" style="width: 100%;"></textarea>
+                </div>
+            </div>
         </div>
     </div>
     <a class="end-button"><i class="fa fa-stop" aria-hidden="true"></i> End Session</a>
@@ -344,6 +354,7 @@ $questions = array_map("generateOpt", $q_s);
 
     var current_quiz = 0;
     var questions = <?php echo json_encode($questions) ?>;
+    var impression_questions = <?php echo json_encode($impression_questions) ?>;
     if (!questions) {
         questions = [];
     }
@@ -407,36 +418,11 @@ $questions = array_map("generateOpt", $q_s);
                     </table>
                 </div>
             `;
-        } else if (question.type === 'final') {
-            let obj = question.answer && question.answer.length > 0?JSON.parse(question.answer):{};
-            ht += `
-                <div class="col-md-12">
-                    <input class="copy_session" type="checkbox" ${obj.copy_session_notes==='on'?'checked':''}> Copy Session Notes
-                </div>
-                <div class="col-md-6">
-                    <label>Subjective</label>
-                    <textarea class="subjective name="" rows="4" style="width: 100%;">${obj.subjective?obj.subjective:''}</textarea>
-                </div>
-                <div class="col-md-6">
-                    <label>Assessment</label>
-                    <textarea class="assessment" name="" rows="4" style="width: 100%;">${obj.assessment?obj.assessment:''}</textarea>
-                </div>
-                <div class="col-md-6">
-                    <label>Objective</label>
-                    <textarea class="objective" name="" rows="4" style="width: 100%;">${obj.objective?obj.objective:''}</textarea>
-                </div>
-                <div class="col-md-6">
-                    <label>Plan</label>
-                    <textarea class="plan" name="" rows="4" style="width: 100%;">${obj.plan?obj.plan:''}</textarea>
-                </div>
-                <div class="col-md-12">
-                    <input class="billable" type="checkbox" ${obj.billable==='on'?'checked':''}> Billable
-                </div>
-            `;
         }
 
         return ht;
     }
+
     function get_quiz() {
         var ht = '';
         for (let index = 0; index < questions.length; index++) {
@@ -457,6 +443,28 @@ $questions = array_map("generateOpt", $q_s);
         $('.q-wrapper').html(ht);
         slider_init();
     }
+
+    function get_impression_quiz() {
+        var ht = '';
+        for (let index = 0; index < impression_questions.length; index++) {
+            ht +=
+            `
+            <div class="quiz-wrapper impression-quiz-${index}">
+                <h4 class="question">${index+1 + '. ' + impression_questions[index].question}</h4>
+                <div class="row options">
+                    ${genOption(impression_questions[index])}
+                </div>
+                <h5 class="extra" style="display: ${impression_questions[index].type === 'final'?'none':''}">
+                    Add more information about this question:
+                </h5>
+                <textarea name="" rows="4" class="more-info" style="width: 100%; display: ${impression_questions[index].type === 'final'?'none':''}">${impression_questions[index].more?impression_questions[index].more:''}</textarea>
+            </div>
+            `
+        }
+        $('.q-impression-wrapper').html(ht);
+        slider_init();
+    }
+
     function slider_init() {
         var slider = document.getElementById("myRange");
         var myValue = document.getElementById("myValue");
@@ -523,6 +531,7 @@ $questions = array_map("generateOpt", $q_s);
             }
         }
     }
+
     var is_saving = false;
     function answerQuiz(questions) {
         var xhttp = new XMLHttpRequest();
@@ -533,52 +542,81 @@ $questions = array_map("generateOpt", $q_s);
         is_saving = false;
     }
 
+    function answerImpressionQuiz(questions) {
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("POST", "/interface/forms/patient_question/save_ajax.php", false);
+        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhttp.send(`encounter=${encounter}&questions=${JSON.stringify(questions)}&pid=<?php echo $supported_patient_id?>&registry=<?php echo $registry?>`);
+        alert('Answers are stored successfully.');
+        is_saving = false;
+    }
+
     $('.end-button').on('click', function () {
         if (is_saving) {
             return;
         }
         is_saving = true;
-        for(let i = 0; i < questions.length; i++) {
-            if (questions[i].type === 'radio' && document.querySelector(`.quiz-${i} input:checked`)) {
-                questions[i].answer = document.querySelector(`.quiz-${i} input:checked`).value;
-                questions[i].more = document.querySelector(`.quiz-${i} .more-info`).value;
-            } else if (questions[i].type === 'checkbox') {
-                let checkboxes = document.querySelectorAll(`.quiz-${i} input:checked`)
-                let str = '';
-                if (checkboxes.length > 0) {
-                    checkboxes.forEach(v => {
-                        str += v.value + '|'
-                    })
-                    str = str.slice(0, -1);
-                }
-                questions[i].answer = str;
-                questions[i].more = document.querySelector(`.quiz-${i} .more-info`).value;
-            } else if (questions[i].type === 'chart') {
-                let myRange = document.getElementById('myRange');
-                if (myRange.value !== '') {
-                    questions[i].answer = myRange.value;
+        if ($('.patient').hasClass('current')) {
+            for(let i = 0; i < questions.length; i++) {
+                if (questions[i].type === 'radio' && document.querySelector(`.quiz-${i} input:checked`)) {
+                    questions[i].answer = document.querySelector(`.quiz-${i} input:checked`).value;
+                    questions[i].more = document.querySelector(`.quiz-${i} .more-info`).value;
+                } else if (questions[i].type === 'checkbox') {
+                    let checkboxes = document.querySelectorAll(`.quiz-${i} input:checked`)
+                    let str = '';
+                    if (checkboxes.length > 0) {
+                        checkboxes.forEach(v => {
+                            str += v.value + '|'
+                        })
+                        str = str.slice(0, -1);
+                    }
+                    questions[i].answer = str;
+                    questions[i].more = document.querySelector(`.quiz-${i} .more-info`).value;
+                } else if (questions[i].type === 'chart') {
+                    let myRange = document.getElementById('myRange');
+                    if (myRange.value !== '') {
+                        questions[i].answer = myRange.value;
+                        questions[i].more = document.querySelector(`.quiz-${i} .more-info`).value;
+                    }
+                } else if (questions[i].type === 'text') {
                     questions[i].more = document.querySelector(`.quiz-${i} .more-info`).value;
                 }
-            } else if (questions[i].type === 'final') {
-                let str = JSON.stringify({
-                    "copy_session_notes": document.getElementsByClassName("copy_session")[0].value,
-                    "subjective": document.getElementsByClassName("subjective")[0].value,
-                    "assessment": document.getElementsByClassName("assessment")[0].value,
-                    "objective": document.getElementsByClassName("objective")[0].value,
-                    "plan": document.getElementsByClassName("plan")[0].value,
-                    "billable": document.getElementsByClassName("billable")[0].value
-                })
-                questions[i].answer = str;
-                questions[i].more = document.querySelector(`.quiz-${i} .more-info`).value;
-            } else if (questions[i].type === 'text') {
-                questions[i].more = document.querySelector(`.quiz-${i} .more-info`).value;
             }
+            answerQuiz(questions);
+            $(this).parent().find('.tabNav>.impression>a').click();
+        } else if ($('.impression').hasClass('current')) {
+            for(let i = 0; i < impression_questions.length; i++) {
+                if (impression_questions[i].type === 'radio' && document.querySelector(`.impression-quiz-${i} input:checked`)) {
+                    impression_questions[i].answer = document.querySelector(`.impression-quiz-${i} input:checked`).value;
+                    impression_questions[i].more = document.querySelector(`.impression-quiz-${i} .more-info`).value;
+                } else if (impression_questions[i].type === 'checkbox') {
+                    let checkboxes = document.querySelectorAll(`.impression-quiz-${i} input:checked`)
+                    let str = '';
+                    if (checkboxes.length > 0) {
+                        checkboxes.forEach(v => {
+                            str += v.value + '|'
+                        })
+                        str = str.slice(0, -1);
+                    }
+                    impression_questions[i].answer = str;
+                    impression_questions[i].more = document.querySelector(`.impression-quiz-${i} .more-info`).value;
+                } else if (impression_questions[i].type === 'chart') {
+                    let myRange = document.getElementById('myRange');
+                    if (myRange.value !== '') {
+                        impression_questions[i].answer = myRange.value;
+                        impression_questions[i].more = document.querySelector(`.impression-quiz-${i} .more-info`).value;
+                    }
+                } else if (impression_questions[i].type === 'text') {
+                    impression_questions[i].more = document.querySelector(`.impression-quiz-${i} .more-info`).value;
+                }
+            }
+            answerImpressionQuiz(impression_questions);
         }
-        answerQuiz(questions);
     })
     $(document).ready(function(){
         tabbify();
         get_quiz();
+        get_impression_quiz();
     })
 </script>
 

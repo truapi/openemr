@@ -1581,7 +1581,7 @@ while ($gfrow = sqlFetchArray($gfres)) {
         };
     }
   // Here we display Primary Support results such as Assessment
-    $ps_query = sqlStatement("SELECT * FROM registry WHERE directory='primary_support'");
+    $ps_query = sqlStatement("SELECT * FROM registry WHERE directory='primary_support_question'");
     while ($ps_item = sqlFetchArray($ps_query)) {
   ?>
       <tr>
@@ -1616,8 +1616,9 @@ while ($gfrow = sqlFetchArray($gfres)) {
                 " INNER JOIN patient_data as supported_data ON supported_data.id = form_encounter.supported_patient " .
                 " INNER JOIN form_assessment_answers ON form_assessment_answers.encounter = form_encounter.encounter " .
                 " INNER JOIN form_assessment_questions ON form_assessment_questions.id = form_assessment_answers.question_id " .
+                " INNER JOIN openemr_postcalendar_categories ON openemr_postcalendar_categories.pc_catid = form_encounter.pc_catid " .
                 " INNER JOIN registry ON registry.id = form_assessment_questions.registry_id " .
-                " WHERE (form_encounter.supported_patient = ? OR form_encounter.pid = ?) AND form_encounter.pc_catid = 16 AND registry.id = ?" .
+                " WHERE (form_encounter.supported_patient = ? OR form_encounter.pid = ?) AND openemr_postcalendar_categories.pc_constant_id = 'primary_support' AND registry.id = ?" .
                 " GROUP BY form_encounter.encounter " .
                 " ORDER BY encounter DESC limit 5";
 
@@ -1631,7 +1632,7 @@ while ($gfrow = sqlFetchArray($gfres)) {
                 $encounter_meta_query =
                     "SELECT form_assessment_answers.answer FROM form_assessment_answers " .
                     "INNER JOIN form_assessment_questions ON form_assessment_answers.question_id = form_assessment_questions.id AND form_assessment_questions.type='chart'" .
-                    "INNER JOIN registry ON registry.id = form_assessment_questions.registry_id " .
+                    "INNER JOIN registry ON registry.id = form_assessment_answers.parent_reg " .
                     "WHERE form_assessment_answers.encounter = ? AND registry.id = ?";
                 $meta_data = sqlFetchArray(sqlStatement($encounter_meta_query, array($my_encounter['encounter'], $ps_item['id'])));
                 $p_risk = $meta_data['answer'];
@@ -1645,13 +1646,6 @@ while ($gfrow = sqlFetchArray($gfres)) {
                     } else {
                         echo explode(" ", $my_encounter['date'])[0].": <a class='EncounterLink' data-pid=".$my_encounter['pid']." data-encounter=".$my_encounter['encounter']." data-desc='".$ps_item['name']."' data-registry='".$ps_item['id']."'>".$ps_item['name']."</a> by <a href='../../patient_file/summary/demographics.php?set_pid=".$my_encounter['pid']."'>".$my_encounter['pdata_fname'].", ".$my_encounter['pdata_lname']."</a> for <a href='../../patient_file/summary/demographics.php?set_pid=".$my_encounter['supported_patient']."'>".$my_encounter['supported_data_fname'].", ".$my_encounter['supported_data_lname']."</a>";
                     }
-                } else if ($my_encounter && $my_encounter['supported_patient'] == $pid) {
-                    if ($p_risk) {
-                        echo explode(" ", $my_encounter['date'])[0].": <a class='EncounterLink' data-pid=".$my_encounter['pid']." data-encounter=".$my_encounter['encounter']." data-desc='".$ps_item['name']."' data-registry='".$ps_item['id']."'>".$ps_item['name']."</a> for <a href='../../patient_file/summary/demographics.php?set_pid=".$my_encounter['supported_patient']."'>".$my_encounter['supported_data_fname'].", ".$my_encounter['supported_data_lname']."</a> by <a href='../../patient_file/summary/demographics.php?set_pid=".$my_encounter['pid']."'>".$my_encounter['pdata_fname'].", ".$my_encounter['pdata_lname']."</a>".
-                            " is <span class='".getRiskCss($p_risk)."'> ". getRiskText($p_risk) ." </span>";
-                    } else {
-                        echo explode(" ", $my_encounter['date'])[0].": <a class='EncounterLink' data-pid=".$my_encounter['pid']." data-encounter=".$my_encounter['encounter']." data-desc='".$ps_item['name']."' data-registry='".$ps_item['id']."'>".$ps_item['name']."</a> for <a href='../../patient_file/summary/demographics.php?set_pid=".$my_encounter['supported_patient']."'>".$my_encounter['supported_data_fname'].", ".$my_encounter['supported_data_lname']."</a> by <a href='../../patient_file/summary/demographics.php?set_pid=".$my_encounter['pid']."'>".$my_encounter['pdata_fname'].", ".$my_encounter['pdata_lname']."</a>";
-                    }
                 }
                 ?>
             </div>
@@ -1661,9 +1655,86 @@ while ($gfrow = sqlFetchArray($gfres)) {
             <br />
         </td>
       </tr>
-      <?php
+    <?php
     }
-      ?>
+    ?>
+
+    <?php
+    $patient_assess_query = sqlStatement("SELECT * FROM registry WHERE directory='patient_question'");
+    while ($ps_item = sqlFetchArray($patient_assess_query)) {
+    ?>
+    <tr>
+        <td width='650px'>
+            <?php // vitals expand collapse widget
+            $widgetTitle = $ps_item['name'];
+            $widgetLabel = str_replace(" ","_",$ps_item['name']);;
+            $widgetButtonLabel = $ps_item['name'];
+            $widgetButtonLink = "";
+            $widgetButtonClass = "";
+            $linkMethod = "html";
+            $bodyClass = "notab";
+            // check to see if any vitals exist
+            $widgetAuth = false;
+
+            $fixedWidth = true;
+            expand_collapse_widget(
+                $widgetTitle,
+                $widgetLabel,
+                $widgetButtonLabel,
+                $widgetButtonLink,
+                $widgetButtonClass,
+                $linkMethod,
+                $bodyClass,
+                $widgetAuth,
+                $fixedWidth
+            );
+            $g_encounter_query =
+                " SELECT form_encounter.*, pdata.fname as pdata_fname, pdata.lname as pdata_lname " .
+                " FROM form_encounter " .
+                " INNER JOIN patient_data as pdata ON pdata.id = form_encounter.pid " .
+                " INNER JOIN form_assessment_answers ON form_assessment_answers.encounter = form_encounter.encounter " .
+                " INNER JOIN form_assessment_questions ON form_assessment_questions.id = form_assessment_answers.question_id " .
+                " INNER JOIN registry ON registry.id = form_assessment_questions.registry_id " .
+                " INNER JOIN openemr_postcalendar_categories ON openemr_postcalendar_categories.pc_catid = form_encounter.pc_catid " .
+                " WHERE form_encounter.pid = ? AND openemr_postcalendar_categories.pc_constant_id = 'patient_enc' AND registry.id = ? AND form_encounter.supported_patient = 0 " .
+                " GROUP BY form_encounter.encounter " .
+                " ORDER BY encounter DESC limit 5";
+
+            $rez = sqlStatement($g_encounter_query, array($pid, $ps_item['id']));
+            ?>
+            <br />
+            <?php
+            for ($iter=0; $row=sqlFetchArray($rez); $iter++) {
+                $my_encounter=$row;
+                $encounter_meta_query =
+                    "SELECT form_assessment_answers.answer FROM form_assessment_answers " .
+                    "INNER JOIN form_assessment_questions ON form_assessment_answers.question_id = form_assessment_questions.id AND form_assessment_questions.type='chart'" .
+                    "INNER JOIN registry ON registry.id = form_assessment_answers.parent_reg " .
+                    "WHERE form_assessment_answers.encounter = ? AND registry.id = ?";
+                $meta_data = sqlFetchArray(sqlStatement($encounter_meta_query, array($my_encounter['encounter'], $ps_item['id'])));
+                $p_risk = $meta_data['answer'];
+            ?>
+            <div style='margin-left:10px; margin-bottom: 5px;' class='text'>
+                <?php
+                if ($my_encounter && $my_encounter['pid'] == $pid) {
+                    if ($p_risk) {
+                        echo explode(" ", $my_encounter['date'])[0].": <a class='EncounterLink' data-pid=".$my_encounter['pid']." data-encounter=".$my_encounter['encounter']." data-desc='".$ps_item['name']."' data-registry='".$ps_item['id']."'>".$ps_item['name']."</a> for <a href='../../patient_file/summary/demographics.php?set_pid=".$my_encounter['pid']."'>".$my_encounter['pdata_fname'].", ".$my_encounter['pdata_lname']."</a>".
+                            " is <span class='".getRiskCss($p_risk)."'> ". getRiskText($p_risk) ." </span>";
+                    } else {
+                        echo explode(" ", $my_encounter['date'])[0].": <a class='EncounterLink' data-pid=".$my_encounter['pid']." data-encounter=".$my_encounter['encounter']." data-desc='".$ps_item['name']."' data-registry='".$ps_item['id']."'>".$ps_item['name']."</a> for <a href='../../patient_file/summary/demographics.php?set_pid=".$my_encounter['pid']."'>".$my_encounter['pdata_fname'].", ".$my_encounter['pdata_lname']."</a>";
+                    }
+                }
+                ?>
+            </div>
+            <?php
+            }
+            ?>
+            <br />
+        </td>
+    </tr>
+    <?php
+    }
+    ?>
   </table>
 
   </div>
@@ -2205,7 +2276,12 @@ if ($track_is_registered) {
     let pId = $(this).data('pid');
     let desc = $(this).data('desc');
     let registry = $(this).data('registry');
-    var url='patient_file/encounter/encounter_top.php?set_encounter='+encId+'&pid='+pId+'&formname=primary_support&formdesc='+desc+'&registry='+registry;
+    let url;
+    if (desc == 'Primary Support Questions') {
+        url='patient_file/encounter/encounter_top.php?set_encounter='+encId+'&pid='+pId+'&formname=primary_support_question&formdesc='+desc+'&registry='+registry;
+    } else {
+        url='patient_file/encounter/encounter_top.php?set_encounter='+encId+'&pid='+pId+'&formname=patient_question&formdesc='+desc+'&registry='+registry;
+    }
     top.restoreSession();
     parent.left_nav.loadFrame('enc', 'enc', url);
 
