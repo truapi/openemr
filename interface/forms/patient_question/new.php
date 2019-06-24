@@ -165,9 +165,7 @@ $registry = isset($_GET['registry']) ? $_GET['registry'] : "";
             /* background: var(--low-bg-color); */
         }
         .end-button {
-            position: absolute;
             background: #de4a4a;
-            right: 50px;
             padding: 10px 15px;
             color: white;
             border-radius: 5px;
@@ -177,6 +175,17 @@ $registry = isset($_GET['registry']) ? $_GET['registry'] : "";
         .end-button:hover {
             color: white;
             text-decoration: none;
+        }
+        .top-btn {
+            position: absolute;
+            right: 50px;
+        }
+        .bottom-btn {
+            position: relative;
+            float: right;
+            margin-right: 10px;
+            margin-bottom: 30px;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -255,8 +264,14 @@ $impression_questions = array_map("generateOpt", $i_q_s);
                             <td>Active 2019-01-14</td>
                         </tr>
                         <tr>
-                            <td>Date of Birth</td>
-                            <td>01/21/2000(19 Years Old)</td>
+                            <td>Date of Birth </td>
+                            <?php
+                            $date = new DateTime($supported_patient['DOB']);
+                            $now = new DateTime();
+                            $interval = $now->diff($date);
+                            $age = $interval->y;
+                            ?>
+                            <td> <?= $supported_patient['DOB'] ?> (<?= $age ?> Years Old)</td>
                         </tr>
                         <tr>
                             <td>Gender</td>
@@ -315,8 +330,9 @@ $impression_questions = array_map("generateOpt", $i_q_s);
                 </div>
             </div>
         </div>
+        <a class="end-button bottom-btn"><i class="fa fa-stop" aria-hidden="true"></i> End Session</a>
     </div>
-    <a class="end-button"><i class="fa fa-stop" aria-hidden="true"></i> End Session</a>
+    <a class="end-button top-btn"><i class="fa fa-stop" aria-hidden="true"></i> End Session</a>
     <?php } ?>
 </body>
 <script language="Javascript">
