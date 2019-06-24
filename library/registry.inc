@@ -182,3 +182,8 @@ function getFormsByCategory($state = '1', $lbfonly = false)
     });
     return $all;
 }
+
+function getPrimarySupportRegistry() {
+    $sql = "SELECT id FROM registry WHERE directory='primary_support_question' LIMIT 1";
+    return sqlQuery($sql);
+}

@@ -19,7 +19,9 @@ $answer = isset($_POST["answer"]) ? $_POST["answer"]: '';
 $encounter = isset($_POST["encounter"]) ? $_POST["encounter"]: '';
 $more = isset($_POST["more"]) ? $_POST["more"]: '';
 $questions = isset($_POST['questions']) ? json_decode($_POST['questions']): null;
-if ($questions) {
+$registry = isset($_POST['registry']) ? $_POST['registry']: null;
+
+if ($questions && $registry==null) {
     foreach($questions as $q) {
         if (strlen($q->answer) > 0 || strlen($q->more) > 0) {
             saveAssessmentAnswer($q->id, $q->answer, $encounter, $q->more);
@@ -30,7 +32,20 @@ if ($questions) {
                 } else {
                     insertPatientMetaData($pid,'Risk',$q->answer, $encounter);
                 }
-
+            }
+        }
+    }
+} else if ($questions && $registry) {
+    foreach($questions as $q) {
+        if (strlen($q->answer) > 0 || strlen($q->more) > 0) {
+            saveAssessmentAnswer($q->id, $q->answer, $encounter, $q->more, $registry);
+            if ($q->type === 'chart') {
+                $risk = getPatientMetaData('Risk',$pid, $encounter);
+                if ($risk['value']) {
+                    updatePatientMetaData($pid,'Risk',$q->answer, $encounter);
+                } else {
+                    insertPatientMetaData($pid,'Risk',$q->answer, $encounter);
+                }
             }
         }
     }
