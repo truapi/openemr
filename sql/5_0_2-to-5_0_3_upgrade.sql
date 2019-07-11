@@ -402,14 +402,16 @@ insert  into `form_assessment_questions`(`id`,`registry_id`,`question`,`type`,`o
 
 /* Create new table patient_meta to store recent assessment value and others */
 DROP TABLE IF EXISTS `patient_meta`;
+
 CREATE TABLE `patient_meta` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `pid` int(11),
-  `name` VARCHAR(50),
-  `encounter` int(11),
-  `value` VARCHAR(50),
+  `pid` int(11) DEFAULT NULL,
+  `name` varchar(50) DEFAULT NULL,
+  `encounter` int(11) DEFAULT NULL,
+  `value` varchar(50) DEFAULT NULL,
+  `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8;
 
 /* Create new table form_encounter_review to store Assessment review state */
 DROP TABLE IF EXISTS `form_encounter_review`;

@@ -194,7 +194,8 @@ $registry = isset($_GET['registry']) ? $_GET['registry'] : "";
 if ($encounter && !isset($_GET['patient_id'])) {
     $encounter_data = fetchEncounterDataById($encounter);
     $patient_id = $encounter_data['pid'];
-    $supported_patient_id = $encounter_data['supported_patient'];
+    // $supported_patient_id = $encounter_data['supported_patient'];
+    $supported_patient_id = $encounter_data['pid'];
 }
 $patient = getPatientData($patient_id);
 $supported_patient = getPatientData($supported_patient_id);
