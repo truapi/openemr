@@ -208,9 +208,11 @@ function generateOpt($q) {
         'id' => $q['id'],
         'question' => $q['question'],
         'type' => $q['type'],
+        'frequency' => $q['frequency'],
         'options' => explode('|', $q['options']),
         'answer' => $q['answer'],
-        'more' => $q['more']
+        'more' => $q['more'],
+        'date' => $q['date']
     );
 }
 
@@ -441,11 +443,16 @@ $impression_questions = array_map("generateOpt", $i_q_s);
 
     function get_quiz() {
         var ht = '';
+        var num = 0;
         for (let index = 0; index < questions.length; index++) {
+            if (questions[index].frequency && (new Date().getTime()-new Date(questions[index].date).getTime())/(1000*60*60*24) < questions[index].frequency) {
+                continue;
+            }
+            num++;
             ht +=
             `
             <div class="quiz-wrapper quiz-${index}">
-                <h4 class="question">${index+1 + '. ' + questions[index].question}</h4>
+                <h4 class="question">${num + '. ' + questions[index].question}</h4>
                 <div class="row options">
                     ${genOption(questions[index])}
                 </div>
@@ -462,11 +469,16 @@ $impression_questions = array_map("generateOpt", $i_q_s);
 
     function get_impression_quiz() {
         var ht = '';
+        var num = 0;
         for (let index = 0; index < impression_questions.length; index++) {
+            if (impression_questions[index].frequency && (new Date().getTime()-new Date(impression_questions[index].date).getTime())/(1000*60*60*24) < impression_questions[index].frequency) {
+                continue;
+            }
+            num++;
             ht +=
             `
             <div class="quiz-wrapper impression-quiz-${index}">
-                <h4 class="question">${index+1 + '. ' + impression_questions[index].question}</h4>
+                <h4 class="question">${num + '. ' + impression_questions[index].question}</h4>
                 <div class="row options">
                     ${genOption(impression_questions[index])}
                 </div>

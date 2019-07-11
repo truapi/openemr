@@ -14,7 +14,7 @@ function getAssessmentQuestions($encounter, $registry) {
         echo "MySQL connect failed";
     }
     $query  =
-        "SELECT form_assessment_questions.*, form_assessment_answers.answer, form_assessment_answers.more ".
+        "SELECT form_assessment_questions.*, form_assessment_answers.answer, form_assessment_answers.more, form_assessment_answers.date ".
         "FROM form_assessment_questions ".
         "LEFT JOIN form_assessment_answers ON form_assessment_questions.id=form_assessment_answers.question_id AND form_assessment_answers.encounter=".$encounter.
         " WHERE form_assessment_questions.registry_id=".$registry.
@@ -45,7 +45,7 @@ function getAssessmentImpressionQuestions($encounter, $directory) {
         echo "MySQL connect failed";
     }
     $query  =
-        "SELECT form_assessment_questions.*, form_assessment_answers.answer, form_assessment_answers.more".
+        "SELECT form_assessment_questions.*, form_assessment_answers.answer, form_assessment_answers.more, form_assessment_answers.date".
         " FROM form_assessment_questions".
         " LEFT JOIN form_assessment_answers ON form_assessment_questions.id=form_assessment_answers.question_id AND form_assessment_answers.encounter=".$encounter.
         " INNER JOIN registry ON registry.directory='".$directory."'".
@@ -73,7 +73,7 @@ function getPatientImpressionQuestions($encounter, $registry) {
         echo "MySQL connect failed";
     }
     $query  =
-        "SELECT form_assessment_questions.*, form_assessment_answers.answer, form_assessment_answers.more".
+        "SELECT form_assessment_questions.*, form_assessment_answers.answer, form_assessment_answers.more, form_assessment_answers.date".
         " FROM form_assessment_questions".
         " LEFT JOIN form_assessment_answers ON form_assessment_questions.id=form_assessment_answers.question_id AND form_assessment_answers.encounter=".$encounter." AND form_assessment_answers.parent_reg=".$registry.
         " INNER JOIN registry ON registry.directory='patient_impression_question' ".
@@ -94,17 +94,17 @@ function saveAssessmentAnswer($q_id, $answer, $encounter, $more, $registry=null)
         $query = "SELECT * FROM form_assessment_answers WHERE question_id = " . $q_id . " AND encounter = " .$encounter . " AND parent_reg = " .$registry. " LIMIT 1";
         $row = sqlFetchArray(sqlStatement($query));
         if ($row) {
-            sqlStatement("UPDATE form_assessment_answers SET answer = '" . $answer . "', more = '" .$more . "' WHERE question_id = " . $q_id . " AND encounter = " .$encounter . " AND parent_reg = " .$registry);
+            sqlStatement("UPDATE form_assessment_answers SET answer = '" . $answer . "', more = '" .$more . "', date = '" .date("Y-m-d H:i:s"). "' WHERE question_id = " . $q_id . " AND encounter = " .$encounter . " AND parent_reg = " .$registry);
         } else {
-            sqlInsert("INSERT INTO form_assessment_answers(question_id, answer, encounter, more, parent_reg) VALUES(?,?,?,?,?)", array($q_id, $answer, $encounter, $more, $registry));
+            sqlInsert("INSERT INTO form_assessment_answers(question_id, answer, encounter, more, parent_reg, date) VALUES(?,?,?,?,?,?)", array($q_id, $answer, $encounter, $more, $registry, date("Y-m-d H:i:s")));
         }
     } else {
         $query = "SELECT * FROM form_assessment_answers WHERE question_id = " . $q_id . " AND encounter = " .$encounter . " LIMIT 1";
         $row = sqlFetchArray(sqlStatement($query));
         if ($row) {
-            sqlStatement("UPDATE form_assessment_answers SET answer = '" . $answer . "', more = '" .$more . "' WHERE question_id = " . $q_id . " AND encounter = " .$encounter);
+            sqlStatement("UPDATE form_assessment_answers SET answer = '" . $answer . "', more = '" .$more . "', date = '" .date("Y-m-d H:i:s"). "' WHERE question_id = " . $q_id . " AND encounter = " .$encounter);
         } else {
-            sqlInsert("INSERT INTO form_assessment_answers(question_id, answer, encounter, more) VALUES(?,?,?,?)", array($q_id, $answer, $encounter, $more));
+            sqlInsert("INSERT INTO form_assessment_answers(question_id, answer, encounter, more, date) VALUES(?,?,?,?,?)", array($q_id, $answer, $encounter, $more, date("Y-m-d H:i:s")));
         }
     }
 }

@@ -1639,7 +1639,7 @@ while ($gfrow = sqlFetchArray($gfres)) {
             ?>
             <div style='margin-left:10px; margin-bottom: 5px;' class='text'>
                 <?php
-                if ($my_encounter && $my_encounter['pid'] == $pid) {
+                if ($my_encounter && ($my_encounter['pid'] == $pid || $my_encounter['supported_patient'] == $pid)) {
                     if ($p_risk) {
                         echo explode(" ", $my_encounter['date'])[0].": <a class='EncounterLink' data-pid=".$my_encounter['pid']." data-encounter=".$my_encounter['encounter']." data-desc='".$ps_item['name']."' data-registry='".$ps_item['id']."'>".$ps_item['name']."</a> by <a href='../../patient_file/summary/demographics.php?set_pid=".$my_encounter['pid']."'>".$my_encounter['pdata_fname'].", ".$my_encounter['pdata_lname']."</a> for <a href='../../patient_file/summary/demographics.php?set_pid=".$my_encounter['supported_patient']."'>".$my_encounter['supported_data_fname'].", ".$my_encounter['supported_data_lname']."</a>".
                             " is <span class='".getRiskCss($p_risk)."'> ". getRiskText($p_risk) ." </span>";
