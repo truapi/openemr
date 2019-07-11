@@ -68,7 +68,8 @@ CREATE TABLE `form_assessment_answers` (
 DELETE FROM `openemr_postcalendar_categories` WHERE `pc_catname`='Primary Support';
 INSERT INTO `openemr_postcalendar_categories` (`pc_catid`,`pc_constant_id`,`pc_catname`,`pc_catcolor`,`pc_catdesc`,`pc_recurrtype`,`pc_duration`,`aco_spec`) VALUES (16,'primary_support','Primary Support','#CCFFFF','Primary Support','a:5:{s:17:"event_repeat_freq";s:1:"0";s:22:"event_repeat_freq_type";s:1:"0";s:19:"event_repeat_on_num";s:1:"1";s:19:"event_repeat_on_day";s:1:"0";s:20:"event_repeat_on_freq";s:1:"0";}',1800,'encounters|notes');
 
-/* create new table form_assessment_questions */
+/*Table structure for table `form_assessment_questions` */
+
 DROP TABLE IF EXISTS `form_assessment_questions`;
 
 CREATE TABLE `form_assessment_questions` (
@@ -79,7 +80,7 @@ CREATE TABLE `form_assessment_questions` (
   `options` text,
   `frequency` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=153 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=203 DEFAULT CHARSET=utf8;
 
 /*Data for the table `form_assessment_questions` */
 
@@ -397,7 +398,61 @@ insert  into `form_assessment_questions`(`id`,`registry_id`,`question`,`type`,`o
 
 (174,31,'In the past 30 days, how many days were you in contact or spent time with any family members or friends who are supportive of your recovery?','radio','Not at all|Slightly|Moderately|Considerably|Extremely',NULL),
 
-(175,31,'How satisfied are you with your progress toward achieving your recovery goals?','radio','Not at all|Slightly|Moderately|Considerably|Extremely',NULL);
+(175,31,'How satisfied are you with your progress toward achieving your recovery goals?','radio','Not at all|Slightly|Moderately|Considerably|Extremely',NULL),
+
+(176,32,'What is your sexual orientation?','radio','Bisexual|Gay|Straight',-1),
+
+(177,32,'What is your occupation?','radio','Accounting/Finance|Administrative|Architecture|Art/Media/Design|Bartender|Biotech/Science|Business owner|Construction|Customer service|Education|Engineering|Fitness|Food/Beverage/Hospitality|General labor|Government|Human resources|Internet|Legal/Paralegal|Management|Manufacturing|Marketing/PR/Advertising|Medical/Health|Non-profit|None|Other|Real estate|Retail/Wholesale|Retried|Sales|Salon/Spa|Security|Skilled trade/Craft|Software|Student|Technical support|Television/Film/Video|Therapy|Transport|Warehouse|Writing/Editing',90),
+
+(178,32,'Have you served in the military?','radio','No|Yes|Yes, and I saw combat',-1),
+
+(179,32,'Are you currently active duty?','radio','No|Yes',180),
+
+(180,32,'What is your current religious affliction (if any)?','radio','Agnostic|Atheist|Baptist|Buddhist|Catholic|Christian|Jewish|Lutheran|Mormon/LDS|Muslim|Non-denominational|None|Other|Protestant|Spiritual|Taoist',180),
+
+(181,32,'Do you see yourself as a religious or spiritual person?','radio','No|Yes',-1),
+
+(182,32,'Have you experienced any legal issues caused by or related to your use?','radio','No|Yes',-1),
+
+(183,32,'Do you have any other addictions?','radio','Body dysmorphic disorder|caffeiene|codependency|eating disorder|food|gambling|gaming|internet|love addiction|nicotine|none|other|porn|self-harm|sex|shopping|work',90),
+
+(184,32,'Which nicotine products do you use?','radio','chewing tobacco|cigar|cigarette|dip|nicotine gym|nicotine patch|none|snuff|vapor cig or electronic|cigarette',-1),
+
+(185,32,'Have you ever had a Traumatic Brain Injury?','radio','No|Yes',-1),
+
+(186,32,'How old were you when your use began?','text',NULL,-1),
+
+(187,32,'Have you experienced any financial issues caused by or related to your use?','radio','No|Yes',-1),
+
+(188,32,'Have you experienced any health issues caused by or related to your use?','radio','No|Yes',-1),
+
+(189,32,'Do you have a family history of drug or alchol addiction?','radio','I don\'t know / I am unsure|No|Yes',-1),
+
+(190,32,'I have people close to me(intimate partner, family members, or friends) who are also in recovery','radio','No|Yes',60),
+
+(191,32,'Whose idea was it for you to get treatment?','radio','Court|Family member|Friend|Other|Spouse/boyfriend/girlfriend|You',-1),
+
+(192,32,'Do you have any experience with the following programs of recovery?','radio','SMART|MAT|Faith based|12 step',-1),
+
+(193,32,'Do you have any previous experience with Medication Assisted Treatment?','radio','No|Yes',-1),
+
+(194,32,'Have you ever experienced an event that you consider traumatic?','radio','No|Yes',-1),
+
+(195,32,'How many times have you been to inpatient or residential treatment?','text',NULL,180),
+
+(196,32,'Have you been hospitalized due to mental health concerns?','radio','No|Yes',30),
+
+(197,32,'Have you been hispitalized due to physical health concerns?','radio','No|Yes',30),
+
+(198,32,'How many days in all were you in Emergency Room for the last 30 days?','text',NULL,30),
+
+(199,32,'Do you have a preferred Primary Care Provider?','radio','No|Yes',-1),
+
+(200,32,'How many days in all were you in Urgent Care for the last 30 days?','text',NULL,30),
+
+(201,32,'Do you have a preferred BH Counselor? Can you provide details?','radio','Yes|No',-1),
+
+(202,32,'Do you have a preferred Psychiatrist? Can you provide details?','radio','Yes|No',-1);
 
 
 /* Create new table patient_meta to store recent assessment value and others */
