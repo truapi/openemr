@@ -449,6 +449,9 @@ $impression_questions = array_map("generateOpt", $i_q_s);
             if (questions[index].frequency && (new Date().getTime()-new Date(questions[index].date).getTime())/(1000*60*60*24) < questions[index].frequency) {
                 continue;
             }
+            if (questions[index].frequency==-1 && questions[index].date) {
+                continue;
+            }
             num++;
             ht +=
             `
@@ -473,6 +476,9 @@ $impression_questions = array_map("generateOpt", $i_q_s);
         var num = 0;
         for (let index = 0; index < impression_questions.length; index++) {
             if (impression_questions[index].frequency && (new Date().getTime()-new Date(impression_questions[index].date).getTime())/(1000*60*60*24) < impression_questions[index].frequency) {
+                continue;
+            }
+            if (impression_questions[index].frequency==-1 && impression_questions[index].date) {
                 continue;
             }
             num++;
