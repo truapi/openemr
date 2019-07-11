@@ -1,3 +1,8 @@
+/*Table structure for table `form_assessment_answers` */
+-- ALTER TABLE `form_assessment_answers` ADD COLUMN `date` datetime;
+
+-- ALTER TABLE `patient_meta` ADD COLUMN `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
 /*Table structure for table `form_assessment_questions` */
 
 DROP TABLE IF EXISTS `form_assessment_questions`;
@@ -383,3 +388,7 @@ insert  into `form_assessment_questions`(`id`,`registry_id`,`question`,`type`,`o
 (201,32,'Do you have a preferred BH Counselor? Can you provide details?','radio','Yes|No',-1),
 
 (202,32,'Do you have a preferred Psychiatrist? Can you provide details?','radio','Yes|No',-1);
+
+insert  into `registry`(`name`,`state`,`directory`,`id`,`sql_run`,`unpackaged`,`date`,`priority`,`category`,`nickname`,`patient_encounter`,`therapy_group_encounter`,`aco_spec`) values
+
+('Intake Session',1,'patient_question',32,1,1,'2019-05-22 21:51:27',0,'Assessments','',1,0,'encounters|notes');
