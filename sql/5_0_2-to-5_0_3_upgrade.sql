@@ -46,7 +46,9 @@ insert  into `registry`(`name`,`state`,`directory`,`id`,`sql_run`,`unpackaged`,`
 
 ('Adolescent Session',1,'patient_question',30,1,1,'2019-05-22 21:51:27',0,'Assessments','',1,0,'encounters|notes'),
 
-('Brief Addiction Monitor',1,'patient_question',31,1,1,'2019-05-22 21:51:27',0,'Assessments','',1,0,'encounters|notes');
+('Brief Addiction Monitor',1,'patient_question',31,1,1,'2019-05-22 21:51:27',0,'Assessments','',1,0,'encounters|notes'),
+
+('Intake Session',1,'patient_question',32,1,1,'2019-05-22 21:51:27',0,'Assessments','',1,0,'encounters|notes');
 
 
 /*Table structure for table `form_assessment_answers` */

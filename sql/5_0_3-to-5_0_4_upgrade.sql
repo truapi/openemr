@@ -1,7 +1,7 @@
 /*Table structure for table `form_assessment_answers` */
--- ALTER TABLE `form_assessment_answers` ADD COLUMN `date` datetime;
+ALTER TABLE `form_assessment_answers` ADD COLUMN `date` datetime;
 
--- ALTER TABLE `patient_meta` ADD COLUMN `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `patient_meta` ADD COLUMN `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
 /*Table structure for table `form_assessment_questions` */
 
