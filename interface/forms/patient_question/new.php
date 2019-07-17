@@ -180,6 +180,21 @@ $registry = isset($_GET['registry']) ? $_GET['registry'] : "";
             position: absolute;
             right: 50px;
         }
+        .reset-btn {
+            background: #007fff7a;
+            padding: 10px 15px;
+            color: white;
+            border-radius: 5px;
+            margin-top: 20px;
+            cursor: pointer;
+            position: absolute;
+            right: 200px;
+        }
+        .reset-button:hover {
+            background: #007fff;
+            color: white;
+            text-decoration: none;
+        }
         .bottom-btn {
             position: relative;
             float: right;
@@ -335,10 +350,12 @@ $impression_questions = array_map("generateOpt", $i_q_s);
         </div>
         <a class="end-button bottom-btn"><i class="fa fa-stop" aria-hidden="true"></i> End Session</a>
     </div>
+    <a class="reset-button reset-btn"><i class="fa fa-eye" aria-hidden="true"></i> All Questions</a>
     <a class="end-button top-btn"><i class="fa fa-stop" aria-hidden="true"></i> End Session</a>
     <?php } ?>
 </body>
 <script language="Javascript">
+    var b_hidden = true;
     function getRiskText($value) {
         if ($value > 90) {
             return 'Highest';
@@ -446,10 +463,10 @@ $impression_questions = array_map("generateOpt", $i_q_s);
         var ht = '';
         var num = 0;
         for (let index = 0; index < questions.length; index++) {
-            if (questions[index].frequency && (new Date().getTime()-new Date(questions[index].date).getTime())/(1000*60*60*24) < questions[index].frequency) {
+            if (b_hidden && questions[index].frequency && (new Date().getTime()-new Date(questions[index].date).getTime())/(1000*60*60*24) < questions[index].frequency) {
                 continue;
             }
-            if (questions[index].frequency==-1 && questions[index].date) {
+            if (b_hidden && questions[index].frequency==-1 && questions[index].date) {
                 continue;
             }
             num++;
@@ -475,10 +492,10 @@ $impression_questions = array_map("generateOpt", $i_q_s);
         var ht = '';
         var num = 0;
         for (let index = 0; index < impression_questions.length; index++) {
-            if (impression_questions[index].frequency && (new Date().getTime()-new Date(impression_questions[index].date).getTime())/(1000*60*60*24) < impression_questions[index].frequency) {
+            if (b_hidden && impression_questions[index].frequency && (new Date().getTime()-new Date(impression_questions[index].date).getTime())/(1000*60*60*24) < impression_questions[index].frequency) {
                 continue;
             }
-            if (impression_questions[index].frequency==-1 && impression_questions[index].date) {
+            if (b_hidden && impression_questions[index].frequency==-1 && impression_questions[index].date) {
                 continue;
             }
             num++;
@@ -648,6 +665,15 @@ $impression_questions = array_map("generateOpt", $i_q_s);
             answerImpressionQuiz(impression_questions);
         }
     })
+
+    $('.reset-btn').on('click', function () {
+        if(confirm("Are you sure to show all questions?")) {
+            b_hidden = false;
+            get_quiz();
+            get_impression_quiz();
+        }
+    })
+
     $(document).ready(function(){
         tabbify();
         get_quiz();
