@@ -993,7 +993,7 @@ if (empty($collectthis)) {
 
  // If we have a patient ID, get the name and phone numbers to display.
     if ($patientid) {
-        $prow = sqlQuery("SELECT lname, fname, phone_home, phone_biz, DOB " .
+        $prow = sqlQuery("SELECT * " .
          "FROM patient_data WHERE pid = ?", array($patientid));
         $patientname = $prow['lname'] . ", " . $prow['fname'];
         if ($prow['phone_home']) {
