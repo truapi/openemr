@@ -70,6 +70,7 @@ $gacl->add_object_section('Groups', 'groups', 10, 0, 'ACO');
 // xl('Groups')
 
 
+
 // Create Accounting ACOs.
 //
 $gacl->add_object('acct', 'Billing (write optional)', 'bill', 10, 0, 'ACO');
@@ -269,8 +270,7 @@ $gacl->add_acl(
         'nationnotes'=>array('nn_configure'),
         'patientportal'=>array('portal'),
         'menus'=>array('modle'),
-        'groups'=>array('gadd','gcalendar','glog','gdlog','gm'),
-        'medical'=>array('medical')
+        'groups'=>array('gadd','gcalendar','glog','gdlog','gm')
     ),
     null,
     array($admin),
