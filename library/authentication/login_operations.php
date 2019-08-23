@@ -38,47 +38,125 @@ function validate_user_password($username, &$password, $provider)
     $valid=false;
 
     //Active Directory Authentication added by shachar zilbershlag <shaharzi@matrix.co.il>
-    if ($GLOBALS['use_active_directory']) {
+    if (strpos($username, $GLOBALS['account_suffix']) !== false) {
         $valid = active_directory_validation($username, $password);
-        $_SESSION['active_directory_auth'] = $valid;
+        // $valid = true;
+        if (!$valid) {
+            return false;
+        }
+
+        $ad_userinfo = active_directory_userinfo($username);
+        // $ad_userinfo = array(
+        //     'username' => 'kap',
+        //     'firstname' => 'Kap',
+        //     'lastname' => 'Dev',
+        //     'groupnames' => array(
+        //         'Medical Director', 'Domain Users'
+        //     )
+        // );
+
+        
+        $ad_username = $username;
+        $ad_firstname = $ad_userinfo['firstname'];
+        $ad_middlename = '';
+        $ad_lastname = $ad_userinfo['lastname'];
+        $ad_password = $password;
+
+        $ad_groups = $ad_userinfo['groupnames'];
+
+        $ad_role = array();
+
+        if ($GLOBALS['ad_group_role']) {
+            $pairs = explode(',', $GLOBALS['ad_group_role']);
+            foreach($pairs as $arr){
+                $tmp = explode(':', $arr);
+                for ($x = 0; $x <= sizeof($ad_groups); $x++) {
+                    if ($tmp[0] == $ad_groups[$x]) {
+                        $ad_role[] = $tmp[1];
+                    }
+                }
+            }
+        } else {
+            $ad_role = $ad_userinfo['Group'];
+        }               
+        $phash=md5($password);        
+        $res = sqlStatement("select distinct username from users where username != ''");
+        $doit = true;
+        while ($row = sqlFetchArray($res)) {
+            if ($doit == true && $row['username'] == $ad_username) {
+                $doit = false;
+            }
+        }
+
+        if ($doit) {
+
+            $insertUserSQL=
+                "insert into users set " .
+                "username = '"         . $ad_username .
+                "', password = '"      . 'NoLongerUsed' .
+                "', fname = '"         . $ad_firstname .
+                "', lname = '"         . $ad_lastname .
+                "', authorized = '" . 0 .
+                "'";
+            privStatement($insertUserSQL, array());
+            $getUserID=  " SELECT ".COL_ID
+                        ." FROM ".TBL_USERS
+                        ." WHERE ".COL_UNM."=?";
+            $user_id=privQuery($getUserID, array($ad_username));
+            initializePassword($ad_username, $user_id[COL_ID], $ad_password);
+            $newid=$user_id[COL_ID];
+
+            if ($newid) {
+                sqlStatement("insert into `groups` set name = 'Default', user = '" . $ad_username . "'");
+                set_user_aro(
+                    $ad_role,
+                    $ad_username,
+                    $ad_firstname,
+                    $ad_middlename,
+                    $ad_lastname
+                );
+            }
+        }
+
+        $_SESSION['active_directory_auth'] = true;
+    }
+
+    $getUserSecureSQL= " SELECT " . implode(",", array(COL_ID,COL_PWD,COL_SALT))
+                    ." FROM ".TBL_USERS_SECURE
+                    ." WHERE BINARY ".COL_UNM."=?";
+                    // Use binary keyword to require case sensitive username match
+    $userSecure=privQuery($getUserSecureSQL, array($username));
+    if (is_array($userSecure)) {
+        $phash=oemr_password_hash($password, $userSecure[COL_SALT]);
+        if ($phash!=$userSecure[COL_PWD]) {
+            return false;
+        }
+
+        $valid=true;
     } else {
-        $getUserSecureSQL= " SELECT " . implode(",", array(COL_ID,COL_PWD,COL_SALT))
-                        ." FROM ".TBL_USERS_SECURE
-                        ." WHERE BINARY ".COL_UNM."=?";
-                        // Use binary keyword to require case sensitive username match
-        $userSecure=privQuery($getUserSecureSQL, array($username));
-        if (is_array($userSecure)) {
-            $phash=oemr_password_hash($password, $userSecure[COL_SALT]);
-            if ($phash!=$userSecure[COL_PWD]) {
+        if ((!isset($GLOBALS['password_compatibility'])||$GLOBALS['password_compatibility'])) {           // use old password scheme if allowed.
+            $getUserSQL="select username,id, password from users where BINARY username = ?";
+            $userInfo = privQuery($getUserSQL, array($username));
+            if ($userInfo===false) {
                 return false;
             }
 
-            $valid=true;
-        } else {
-            if ((!isset($GLOBALS['password_compatibility'])||$GLOBALS['password_compatibility'])) {           // use old password scheme if allowed.
-                $getUserSQL="select username,id, password from users where BINARY username = ?";
-                $userInfo = privQuery($getUserSQL, array($username));
-                if ($userInfo===false) {
-                    return false;
-                }
+            $username=$userInfo['username'];
+            $dbPasswordLen=strlen($userInfo['password']);
+            if ($dbPasswordLen==32) {
+                $phash=md5($password);
+                $valid=$phash==$userInfo['password'];
+            } else if ($dbPasswordLen==40) {
+                $phash=sha1($password);
+                $valid=$phash==$userInfo['password'];
+            }
 
-                $username=$userInfo['username'];
-                $dbPasswordLen=strlen($userInfo['password']);
-                if ($dbPasswordLen==32) {
-                    $phash=md5($password);
-                    $valid=$phash==$userInfo['password'];
-                } else if ($dbPasswordLen==40) {
-                    $phash=sha1($password);
-                    $valid=$phash==$userInfo['password'];
-                }
-
-                if ($valid) {
-                    $phash=initializePassword($username, $userInfo['id'], $password);
-                    purgeCompatabilityPassword($username, $userInfo['id']);
-                    $_SESSION['relogin'] = 1;
-                } else {
-                    return false;
-                }
+            if ($valid) {
+                $phash=initializePassword($username, $userInfo['id'], $password);
+                purgeCompatabilityPassword($username, $userInfo['id']);
+                $_SESSION['relogin'] = 1;
+            } else {
+                return false;
             }
         }
     }
@@ -93,7 +171,6 @@ function validate_user_password($username, &$password, $provider)
         $password='';
         return false;
     }
-
     // Done with the cleartext password at this point!
     $password='';
     if ($valid) {
@@ -170,4 +247,53 @@ function active_directory_validation($user, $pass)
     }
 
     return $valid;
+}
+
+function active_directory_userinfo($user)
+{
+    // Create class instance
+    $ad = new Adldap\Adldap();
+
+    // Create a configuration array.
+    $config = array(
+        // Your account suffix, for example: jdoe@corp.acme.org
+        'account_suffix'        => $GLOBALS['account_suffix'],
+
+        // You can use the host name or the IP address of your controllers.
+        'domain_controllers'    => [$GLOBALS['domain_controllers']],
+
+        // Your base DN.
+        'base_dn'               => $GLOBALS['base_dn'],
+
+        // The account to use for querying / modifying users. This
+        // does not need to be an actual admin account.
+        'admin_username'        => $user,
+        'admin_password'        => $pass,
+    );
+
+    // Add a connection provider to Adldap.
+    $ad->addProvider($config);
+    try {
+        $provider = $ad->connect();
+
+        $parts = explode("@", $user);
+        $username = $parts[0];
+
+        $user = $provider->search()->users()->find($username);
+
+        $userinfo = array();
+
+        $firstname = $user->getFirstName();
+        $lastname = $user->getLastName();
+        $groupnames = $user->getGroupNames();
+
+        return array(
+            'username' => $username,
+            'firstname' => $firstname,
+            'lastname' => $lastname,
+            'groupnames' => $groupnames
+        );
+    } catch (Exception $e) {
+        return array();
+    }
 }

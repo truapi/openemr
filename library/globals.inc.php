@@ -1847,12 +1847,12 @@ $GLOBALS_METADATA = array(
             xl('Key for multiple database credentials encryption')
         ),
 
-        'use_active_directory' => array(
-            xl('Use Active Directory'),
-            'bool',
-            '0',
-            xl('If enabled, uses the specified active directory for login and authentication.')
-        ),
+        // 'use_active_directory' => array(
+        //     xl('Use Active Directory'),
+        //     'bool',
+        //     '0',
+        //     xl('If enabled, uses the specified active directory for login and authentication.')
+        // ),
 
         'account_suffix' => array(
             xl('Active Directory - Suffix Of Account'),
@@ -1873,6 +1873,13 @@ $GLOBALS_METADATA = array(
             'text',
             '',
             xl('The IP address of your domain controller(s).')
+        ),
+
+        'ad_group_role' => array(
+            xl('Active Directory - Group:Role'),
+            'text',
+            'admin:Administrators, Medical:Medical Director',
+            xl('The Group names of your domain controller(s) and Role names of OPENEMR.')
         ),
 
     ),
